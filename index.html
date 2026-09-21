@@ -1,0 +1,811 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Célébration du Dharma 2026 — Vos séances</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #EB570F;
+      --primary-dark: #D14E0D;
+      --primary-light: #FFF3EC;
+      --gold: #B8860B;
+      --gold-light: #FDF6E3;
+      --green: #318F7D;
+      --green-light: #E8F5F0;
+      --gray-50: #F9FAFB;
+      --gray-100: #F3F4F6;
+      --gray-200: #E5E7EB;
+      --gray-300: #D1D5DB;
+      --gray-400: #9CA3AF;
+      --gray-500: #6B7280;
+      --gray-600: #4B5563;
+      --gray-700: #374151;
+      --gray-800: #1F2937;
+      --gray-900: #111827;
+      --red: #CD1A30;
+      --white: #FFFFFF;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      color: var(--gray-800);
+      background: url('chateau-bg.jpg') center top / cover no-repeat fixed;
+      min-height: 100vh;
+      line-height: 1.6;
+    }
+
+    /* ============================================================
+       PAGE CHARGEMENT / ERREUR
+       ============================================================ */
+    .loading-page {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 24px;
+      position: relative;
+    }
+    .loading-page::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: rgba(17, 24, 39, 0.55);
+      z-index: 0;
+    }
+
+    .loading-card {
+      background: rgba(255,255,255,0.72);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-radius: 20px;
+      box-shadow: 0 20px 60px rgba(0,0,0,.25), 0 4px 16px rgba(0,0,0,.1);
+      max-width: 440px;
+      width: 100%;
+      overflow: hidden;
+      position: relative;
+      z-index: 1;
+    }
+
+    .loading-banner {
+      padding: 0;
+      text-align: center;
+      color: var(--white);
+      position: relative;
+      overflow: hidden;
+    }
+    .loading-banner img {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+    .loading-banner .banner-overlay {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 24px 24px 20px;
+      background: linear-gradient(to top, rgba(0,0,0,.7) 0%, transparent 100%);
+    }
+    .loading-banner h1 {
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: -0.3px;
+      margin-bottom: 2px;
+      text-shadow: 0 2px 8px rgba(0,0,0,.4);
+    }
+    .loading-banner .subtitle {
+      font-size: 13px;
+      opacity: .85;
+      font-weight: 400;
+      text-shadow: 0 1px 4px rgba(0,0,0,.4);
+    }
+
+    .loading-body {
+      padding: 32px 32px 12px;
+      text-align: center;
+    }
+    .loading-body .loading-spinner {
+      display: inline-block;
+      width: 36px; height: 36px;
+      border: 3px solid var(--gray-200);
+      border-top-color: var(--primary);
+      border-radius: 50%;
+      animation: spin .7s linear infinite;
+      margin-bottom: 16px;
+    }
+    .loading-body p {
+      font-size: 14px;
+      color: var(--gray-500);
+    }
+
+    .error-card {
+      padding: 32px 32px 12px;
+      text-align: center;
+      display: none;
+    }
+    .error-card .error-icon {
+      font-size: 40px;
+      margin-bottom: 12px;
+    }
+    .error-card h2 {
+      font-size: 17px;
+      font-weight: 700;
+      color: var(--gray-800);
+      margin-bottom: 8px;
+    }
+    .error-card p {
+      font-size: 14px;
+      color: var(--gray-500);
+      line-height: 1.6;
+    }
+    .error-card a {
+      color: var(--primary);
+      text-decoration: none;
+    }
+
+    .loading-footer {
+      padding: 20px 32px 28px;
+      text-align: center;
+    }
+    .loading-footer p { font-size: 12px; color: var(--gray-400); line-height: 1.5; }
+    .loading-footer a { color: var(--primary); text-decoration: none; }
+
+    /* ============================================================
+       PAGE PROGRAMME DES SÉANCES
+       ============================================================ */
+    .links-page {
+      display: none;
+      min-height: 100vh;
+      position: relative;
+    }
+    .links-page::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background: rgba(249, 250, 251, 0.82);
+      backdrop-filter: blur(6px);
+      z-index: 0;
+    }
+    .links-page > * {
+      position: relative;
+      z-index: 1;
+    }
+
+    /* Top bar */
+    .top-bar {
+      background: rgba(255, 255, 255, 0.88);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(229, 231, 235, 0.7);
+      padding: 16px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+    .top-bar-left { display: flex; align-items: center; gap: 12px; }
+    .top-bar-left img { height: 40px; width: auto; border-radius: 6px; }
+    .top-bar-title { font-size: 15px; font-weight: 700; color: var(--gray-900); }
+    .top-bar-subtitle { font-size: 12px; color: var(--gray-400); font-weight: 400; }
+
+    /* Event header */
+    .event-header {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 32px 24px 0;
+      display: flex;
+      gap: 24px;
+      align-items: flex-start;
+    }
+    .event-header img {
+      width: 160px; height: auto; border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0,0,0,.1); flex-shrink: 0;
+    }
+    .event-info h1 { font-size: 26px; font-weight: 700; color: var(--gray-900); margin-bottom: 4px; }
+    .event-info .event-dates { font-size: 14px; color: var(--gray-400); margin-bottom: 12px; }
+    .event-info .event-desc { font-size: 14px; color: var(--gray-600); line-height: 1.6; }
+    .greeting-badge {
+      display: inline-block;
+      background: var(--primary-light);
+      color: var(--primary);
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 600;
+      margin-top: 12px;
+    }
+
+    /* Programme */
+    .programme {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 28px 24px 40px;
+    }
+    .programme-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--gray-900);
+      margin-bottom: 6px;
+    }
+    .programme-note {
+      font-size: 13px;
+      color: var(--gray-400);
+      margin-bottom: 24px;
+      padding-bottom: 16px;
+      border-bottom: 2px solid var(--gray-100);
+    }
+
+    /* Day group */
+    .day-group { margin-bottom: 28px; }
+    .day-label {
+      font-size: 11px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 1px; color: var(--gray-400);
+      margin-bottom: 8px; padding-left: 4px;
+    }
+    .day-sessions {
+      background: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(8px);
+      border-radius: 12px;
+      border: 1px solid rgba(229, 231, 235, 0.6);
+      overflow: hidden;
+    }
+
+    /* Session row */
+    .session-row {
+      display: flex;
+      align-items: center;
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--gray-100);
+      transition: background .1s;
+    }
+    .session-row:last-child { border-bottom: none; }
+    .session-row:hover { background: var(--gray-50); }
+
+    .session-time-col {
+      width: 60px; flex-shrink: 0;
+      font-size: 14px; color: var(--gray-700); font-weight: 600;
+    }
+    .session-name-col {
+      flex: 1; font-size: 15px; font-weight: 500;
+      color: var(--gray-800); padding-right: 16px;
+    }
+
+    /* Status badges */
+    .badge-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 18px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      white-space: nowrap;
+      font-family: inherit;
+      flex-shrink: 0;
+      text-decoration: none;
+    }
+
+    .badge-live { background: #DC2626; color: var(--white); }
+    .badge-replay { background: var(--primary); color: var(--white); }
+    .badge-a-venir { background: var(--gray-100); color: var(--gray-400); font-style: italic; font-weight: 500; }
+    .badge-replay-soon { background: var(--gold-light); color: var(--gold); font-weight: 500; }
+    .badge-upcoming { background: #DBEAFE; color: #1E40AF; font-weight: 500; }
+
+    .live-dot {
+      display: inline-block;
+      width: 8px; height: 8px;
+      background: var(--white);
+      border-radius: 50%;
+      animation: pulse-live 1.5s ease-in-out infinite;
+    }
+    @keyframes pulse-live {
+      0%, 100% { opacity: 1; }
+      50% { opacity: .3; }
+    }
+
+    /* Info box */
+    .info-box {
+      background: rgba(232, 245, 240, 0.85);
+      backdrop-filter: blur(8px);
+      border-radius: 12px;
+      padding: 20px 24px;
+      margin-top: 24px;
+    }
+    .info-box h3 { font-size: 14px; font-weight: 600; color: #065F46; margin-bottom: 10px; }
+    .info-box ul { list-style: none; padding: 0; }
+    .info-box li {
+      font-size: 13px; color: #065F46; line-height: 1.7;
+      padding-left: 16px; position: relative;
+    }
+    .info-box li::before {
+      content: '\2022'; color: var(--green); font-weight: bold;
+      position: absolute; left: 0;
+    }
+
+    /* Viewer count */
+    .viewer-count {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 12px;
+      color: var(--gray-400);
+      margin-left: 10px;
+      font-weight: 500;
+    }
+    .viewer-count .viewer-dot {
+      display: inline-block;
+      width: 6px; height: 6px;
+      background: #22C55E;
+      border-radius: 50%;
+    }
+
+    /* Video player embed */
+    .session-row.has-player { flex-wrap: wrap; }
+    .video-player-wrap {
+      width: 100%;
+      margin-top: 12px;
+      border-radius: 10px;
+      overflow: hidden;
+      background: #000;
+      box-shadow: 0 4px 16px rgba(0,0,0,.15);
+    }
+    .video-player-wrap .video-responsive {
+      position: relative;
+      padding-bottom: 56.25%;
+      height: 0;
+    }
+    .video-player-wrap .video-responsive iframe {
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 100%;
+      border: none;
+    }
+
+    /* No links */
+    .no-links {
+      text-align: center; padding: 48px 24px; color: var(--gray-400);
+    }
+    .no-links .icon { font-size: 48px; margin-bottom: 16px; }
+    .no-links p { font-size: 15px; line-height: 1.6; }
+
+    /* Footer */
+    .page-footer {
+      max-width: 800px; margin: 0 auto;
+      padding: 0 24px 40px; text-align: center;
+    }
+    .page-footer p { font-size: 12px; color: var(--gray-400); line-height: 1.6; }
+    .page-footer a { color: var(--primary); text-decoration: none; }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ============================================================
+       Responsive
+       ============================================================ */
+    @media (max-width: 640px) {
+      .event-header { flex-direction: column; align-items: center; text-align: center; padding: 24px 16px 0; }
+      .event-header img { width: 140px; }
+      .programme { padding: 24px 16px 32px; }
+      .session-row { flex-wrap: wrap; gap: 6px; padding: 14px 16px; }
+      .session-time-col { width: auto; font-size: 12px; order: 2; }
+      .session-name-col { width: 100%; order: 1; font-size: 14px; padding-right: 0; margin-bottom: 2px; }
+      .badge-status { order: 3; margin-left: auto; }
+      .top-bar { padding: 12px 16px; }
+      .top-bar-left img { height: 32px; }
+      .top-bar-title { font-size: 13px; }
+    }
+
+    @media (max-width: 440px) {
+      .loading-body { padding: 28px 20px 8px; }
+      .loading-footer { padding: 16px 20px 24px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ========== PAGE CHARGEMENT / ERREUR ========== -->
+  <div class="loading-page" id="page-loading">
+    <div class="loading-card">
+      <div class="loading-banner">
+        <img src="https://drive.google.com/thumbnail?id=1L1wzNxGyBWWozBh7rKmRLaxW3TjiAS7e&sz=w600" alt="Célébration du Dharma 2026">
+        <div class="banner-overlay">
+          <h1>Célébration du Dharma 2026</h1>
+          <p class="subtitle">Changer son esprit, changer sa vie</p>
+        </div>
+      </div>
+
+      <!-- État : chargement -->
+      <div class="loading-body" id="loading-state">
+        <div class="loading-spinner"></div>
+        <p>Chargement de votre programme...</p>
+      </div>
+
+      <!-- État : erreur (lien invalide ou absent) -->
+      <div class="error-card" id="error-state">
+        <div class="error-icon">🔒</div>
+        <h2>Lien non reconnu</h2>
+        <p>Ce lien d'accès n'est pas valide ou a expiré.<br>
+        Veuillez utiliser le lien personnel reçu par email.</p>
+        <p style="margin-top: 12px;">
+          <a href="mailto:inscriptions-festival@kadampafrance.org">Contacter l'équipe des inscriptions</a>
+        </p>
+      </div>
+
+      <!-- État : erreur réseau -->
+      <div class="error-card" id="network-error-state">
+        <div class="error-icon">📡</div>
+        <h2>Erreur de connexion</h2>
+        <p>Impossible de contacter le serveur.<br>
+        Vérifiez votre connexion internet et
+        <a href="javascript:location.reload()">rechargez la page</a>.</p>
+      </div>
+
+      <div class="loading-footer">
+        <p>Centre de Méditation Kadampa France<br>
+        <a href="mailto:inscriptions-festival@kadampafrance.org">inscriptions-festival@kadampafrance.org</a></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== PAGE PROGRAMME ========== -->
+  <div class="links-page" id="page-links">
+    <div class="top-bar">
+      <div class="top-bar-left">
+        <img src="https://drive.google.com/thumbnail?id=1L1wzNxGyBWWozBh7rKmRLaxW3TjiAS7e&sz=w200" alt="CD2026">
+        <div>
+          <div class="top-bar-title">Célébration du Dharma 2026</div>
+          <div class="top-bar-subtitle">Streaming</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="event-header">
+      <img src="https://drive.google.com/thumbnail?id=1L1wzNxGyBWWozBh7rKmRLaxW3TjiAS7e&sz=w400" alt="Célébration du Dharma 2026">
+      <div class="event-info">
+        <h1>Célébration du Dharma 2026</h1>
+        <div class="event-dates">27 nov. – 30 nov. 2026</div>
+        <div class="event-desc">
+          Enseignements et méditations guidées par Guèn Kelsang Eupamé.<br>
+          Transmission de Tara Verte et pratiques de Joyau qui exauce les souhaits.
+        </div>
+        <div class="greeting-badge" id="greeting"></div>
+      </div>
+    </div>
+
+    <div class="programme">
+      <div class="programme-title">Programme de l'événement</div>
+      <div class="programme-note">Le lien du direct est accessible 10 minutes avant le début de chaque séance.</div>
+      <div id="links-list"></div>
+
+      <div class="info-box">
+        <h3>Informations pratiques</h3>
+        <ul>
+          <li>Le lien du <strong>direct</strong> s'active 10 minutes avant chaque séance et se désactive à la fin</li>
+          <li>Les <strong>enregistrements</strong> sont ajoutés séance par séance après la diffusion</li>
+          <li>Les enregistrements restent accessibles jusqu'au <strong>mardi 8 décembre à 12h30</strong></li>
+          <li>Pensez à vérifier que le son est activé et utilisez le mode plein écran</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="page-footer">
+      <p>Centre de Méditation Kadampa France<br>
+      Château de Segrais — 72220 Saint-Mars-d'Outillé<br>
+      <a href="mailto:inscriptions-festival@kadampafrance.org">inscriptions-festival@kadampafrance.org</a></p>
+    </div>
+  </div>
+
+  <!-- ========== FIREBASE SDK ========== -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+  <script src="firebase-config.js"></script>
+
+  <script>
+    // ============================================================
+    // Initialisation Firebase
+    // ============================================================
+    firebase.initializeApp(FIREBASE_CONFIG);
+    var db = firebase.firestore();
+
+    var SEANCES_DATA = null;
+    var REFRESH_INTERVAL = null;
+    var VIEWER_ID = 'v_' + Math.random().toString(36).substr(2, 9) + Date.now().toString(36);
+    var VIEWER_COUNTS = {};
+
+    // ============================================================
+    // Date / heure
+    // ============================================================
+    var JOURS_LONG = ['dimanche', 'lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi'];
+    var MOIS = ['janv.', 'févr.', 'mars', 'avr.', 'mai', 'juin', 'juil.', 'août', 'sept.', 'oct.', 'nov.', 'déc.'];
+
+    function parseDate(ts) {
+      if (!ts) return null;
+      // Firestore Timestamp
+      if (ts.toDate) return ts.toDate();
+      // String format dd/MM/yyyy HH:mm
+      var parts = String(ts).match(/(\d{1,2})\/(\d{1,2})\/(\d{4})\s*(\d{1,2}):(\d{2})/);
+      if (parts) return new Date(parts[3], parts[2] - 1, parts[1], parts[4], parts[5]);
+      // ISO or other format
+      var d = new Date(ts);
+      return isNaN(d.getTime()) ? null : d;
+    }
+
+    function formatDayLabel(date) {
+      return JOURS_LONG[date.getDay()].toUpperCase() + ' ' + date.getDate() + ' ' + MOIS[date.getMonth()].toUpperCase();
+    }
+
+    function formatTime(date) {
+      return date.getHours() + 'h' + String(date.getMinutes()).padStart(2, '0');
+    }
+
+    // ============================================================
+    // Statut d'une séance
+    // ============================================================
+    function getSeanceStatus(s) {
+      var now = new Date();
+      var debut = parseDate(s.date);
+      if (!debut) return { status: 'unknown' };
+
+      var ouverture = new Date(debut.getTime() - 10 * 60 * 1000);
+      var fin = new Date(debut.getTime() + (s.duree || 90) * 60 * 1000);
+
+      if (now < ouverture) {
+        return { status: 'upcoming', debut: debut };
+      } else if (now >= ouverture && now <= fin) {
+        return { status: 'live' };
+      } else {
+        if (s.lienReplay) {
+          return { status: 'replay' };
+        } else {
+          return { status: 'replay-soon' };
+        }
+      }
+    }
+
+    // ============================================================
+    // Lien unique : lecture du token dans l'URL
+    // ============================================================
+    function getTokenFromUrl() {
+      var params = new URLSearchParams(window.location.search);
+      return params.get('t') || '';
+    }
+
+    // ============================================================
+    // Chargement depuis Firebase (collection tokens)
+    // ============================================================
+    function chargerSeances() {
+      var token = getTokenFromUrl();
+      if (!token) {
+        afficherErreur('invalid');
+        return;
+      }
+
+      db.collection('tokens').doc(token).get()
+        .then(function(doc) {
+          if (!doc.exists) {
+            afficherErreur('invalid');
+            return;
+          }
+          var data = doc.data();
+          if (!data || !data.prenom) {
+            afficherErreur('invalid');
+            return;
+          }
+          afficherLiens(data);
+        })
+        .catch(function(err) {
+          console.error('Erreur Firebase:', err);
+          afficherErreur('network');
+        });
+    }
+
+    function afficherErreur(type) {
+      document.getElementById('loading-state').style.display = 'none';
+      if (type === 'network') {
+        document.getElementById('network-error-state').style.display = 'block';
+      } else {
+        document.getElementById('error-state').style.display = 'block';
+      }
+    }
+
+    // ============================================================
+    // Affichage des séances
+    // ============================================================
+    function afficherLiens(data) {
+      document.getElementById('page-loading').style.display = 'none';
+      document.getElementById('page-links').style.display = 'block';
+      document.getElementById('greeting').textContent = 'Bonjour ' + data.prenom + ' !';
+
+      SEANCES_DATA = data;
+      renderSeances();
+      sendHeartbeats();
+
+      if (REFRESH_INTERVAL) clearInterval(REFRESH_INTERVAL);
+      REFRESH_INTERVAL = setInterval(function() {
+        // Recharger depuis Firebase pour avoir les mises à jour
+        var token = getTokenFromUrl();
+        if (token) {
+          db.collection('tokens').doc(token).get().then(function(doc) {
+            if (doc.exists) {
+              SEANCES_DATA = doc.data();
+              renderSeances();
+            }
+          });
+        }
+        sendHeartbeats();
+      }, 30000);
+    }
+
+    // ============================================================
+    // Heartbeat (compteur de participants) via Firestore
+    // ============================================================
+    function sendHeartbeats() {
+      if (!SEANCES_DATA || !SEANCES_DATA.seances) return;
+      SEANCES_DATA.seances.forEach(function(s) {
+        var status = getSeanceStatus(s);
+        if (status.status === 'live' || status.status === 'replay') {
+          var seanceKey = slugify(s.nom);
+          var now = Date.now();
+
+          // Écrire la présence de ce viewer
+          db.collection('presence').doc(seanceKey).collection('viewers').doc(VIEWER_ID).set({
+            lastSeen: firebase.firestore.FieldValue.serverTimestamp(),
+            ts: now
+          }).catch(function() {});
+
+          // Lire le nombre de viewers actifs (vus dans les 90 dernières secondes)
+          var cutoff = new Date(now - 90000);
+          db.collection('presence').doc(seanceKey).collection('viewers')
+            .where('ts', '>', cutoff.getTime())
+            .get()
+            .then(function(snap) {
+              VIEWER_COUNTS[s.nom] = snap.size;
+              var el = document.getElementById('vc-' + seanceKey);
+              if (el) el.textContent = snap.size;
+            }).catch(function() {});
+        }
+      });
+    }
+
+    function slugify(str) {
+      return str.replace(/[^a-zA-Z0-9]/g, '_');
+    }
+
+    // ============================================================
+    // Vimeo embed
+    // ============================================================
+    function vimeoEmbedUrl(url) {
+      if (!url) return null;
+      url = url.trim();
+      if (url.indexOf('player.vimeo.com') !== -1) return url;
+
+      var eventMatch = url.match(/vimeo\.com\/event\/([A-Za-z0-9]+)/);
+      if (eventMatch) return 'https://vimeo.com/event/' + eventMatch[1] + '/embed';
+
+      var videoMatch = url.match(/vimeo\.com\/(?:video\/)?(\d+)(?:\/([a-f0-9]+))?/);
+      if (videoMatch) {
+        var embedUrl = 'https://player.vimeo.com/video/' + videoMatch[1] + '?autoplay=1&title=0&byline=0&portrait=0';
+        if (videoMatch[2]) embedUrl += '&h=' + videoMatch[2];
+        return embedUrl;
+      }
+      return null;
+    }
+
+    // ============================================================
+    // Rendu des séances
+    // ============================================================
+    function renderSeances() {
+      var data = SEANCES_DATA;
+      if (!data) return;
+
+      var container = document.getElementById('links-list');
+
+      if (!data.seances || data.seances.length === 0) {
+        container.innerHTML = '<div class="no-links"><div class="icon">📅</div>' +
+          '<p>Aucune séance ne vous est attribuée pour le moment.<br>Contactez l\'équipe des inscriptions si besoin.</p></div>';
+        return;
+      }
+
+      var groups = {};
+      var groupOrder = [];
+
+      data.seances.forEach(function(s) {
+        var d = parseDate(s.date);
+        var dayKey = d ? (d.getFullYear() + '-' + d.getMonth() + '-' + d.getDate()) : 'autre';
+        if (!groups[dayKey]) {
+          groups[dayKey] = { date: d, seances: [] };
+          groupOrder.push(dayKey);
+        }
+        groups[dayKey].seances.push(s);
+      });
+
+      var html = '';
+      groupOrder.forEach(function(key) {
+        var group = groups[key];
+        var label = group.date ? formatDayLabel(group.date) : 'AUTRES';
+
+        html += '<div class="day-group">';
+        html += '  <div class="day-label">' + label + '</div>';
+        html += '  <div class="day-sessions">';
+
+        group.seances.forEach(function(s) {
+          var d = parseDate(s.date);
+          var time = d ? formatTime(d) : '';
+          var status = getSeanceStatus(s);
+          var embedUrl = null;
+          var showPlayer = false;
+
+          switch (status.status) {
+            case 'live':
+              embedUrl = vimeoEmbedUrl(s.lienDirect);
+              showPlayer = !!embedUrl;
+              break;
+            case 'replay':
+              embedUrl = vimeoEmbedUrl(s.lienReplay);
+              showPlayer = !!embedUrl;
+              break;
+          }
+
+          html += '<div class="session-row' + (showPlayer ? ' has-player' : '') + '">';
+          html += '  <div class="session-time-col">' + time + '</div>';
+          html += '  <div class="session-name-col">' + escapeHtml(s.nom) + '</div>';
+
+          var viewerCount = VIEWER_COUNTS[s.nom] || 0;
+          var vcHtml = '<span class="viewer-count"><span class="viewer-dot"></span><span id="vc-' + slugify(s.nom) + '">' + (viewerCount > 0 ? viewerCount : '—') + '</span></span>';
+
+          switch (status.status) {
+            case 'live':
+              html += '<span class="badge-status badge-live"><span class="live-dot"></span> EN DIRECT</span>';
+              html += vcHtml;
+              break;
+            case 'replay':
+              html += '<span class="badge-status badge-replay">Replay</span>';
+              html += vcHtml;
+              break;
+            case 'replay-soon':
+              html += '<span class="badge-status badge-replay-soon">Replay à venir</span>';
+              break;
+            case 'upcoming':
+              var heureDebut = formatTime(status.debut);
+              html += '<span class="badge-status badge-upcoming">Direct à ' + heureDebut + '</span>';
+              break;
+            default:
+              html += '<span class="badge-status badge-a-venir">—</span>';
+          }
+
+          if (showPlayer && embedUrl) {
+            html += '<div class="video-player-wrap">';
+            html += '  <div class="video-responsive">';
+            html += '    <iframe src="' + escapeHtml(embedUrl) + '" ';
+            html += '      allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>';
+            html += '  </div>';
+            html += '</div>';
+          }
+
+          html += '</div>';
+        });
+
+        html += '  </div>';
+        html += '</div>';
+      });
+
+      container.innerHTML = html;
+    }
+
+    function escapeHtml(text) {
+      var div = document.createElement('div');
+      div.textContent = text || '';
+      return div.innerHTML;
+    }
+
+    // ============================================================
+    // Lancement automatique
+    // ============================================================
+    chargerSeances();
+  </script>
+</body>
+</html>

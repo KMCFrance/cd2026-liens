@@ -1,0 +1,1177 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CD2026 — Administration</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #EB570F;
+      --primary-dark: #D14E0D;
+      --primary-light: #FFF3EC;
+      --green: #318F7D;
+      --green-light: #E8F5F0;
+      --red: #DC2626;
+      --red-light: #FEF2F2;
+      --gold: #B8860B;
+      --gray-50: #F9FAFB;
+      --gray-100: #F3F4F6;
+      --gray-200: #E5E7EB;
+      --gray-300: #D1D5DB;
+      --gray-400: #9CA3AF;
+      --gray-500: #6B7280;
+      --gray-600: #4B5563;
+      --gray-700: #374151;
+      --gray-800: #1F2937;
+      --gray-900: #111827;
+      --white: #FFFFFF;
+      --radius: 10px;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Inter', -apple-system, sans-serif;
+      background: var(--gray-50);
+      color: var(--gray-800);
+      min-height: 100vh;
+    }
+
+    /* ========== LOGIN ========== */
+    .login-page {
+      display: flex; align-items: center; justify-content: center;
+      min-height: 100vh; padding: 24px;
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+    }
+    .login-card {
+      background: var(--white); border-radius: 16px;
+      padding: 40px; max-width: 400px; width: 100%;
+      box-shadow: 0 20px 60px rgba(0,0,0,.3);
+      text-align: center;
+    }
+    .login-card h1 { font-size: 22px; font-weight: 700; margin-bottom: 4px; }
+    .login-card .login-sub { font-size: 13px; color: var(--gray-400); margin-bottom: 28px; }
+    .login-card input {
+      width: 100%; padding: 12px 16px; border: 1px solid var(--gray-200);
+      border-radius: var(--radius); font-size: 14px; font-family: inherit;
+      outline: none; transition: border .2s;
+    }
+    .login-card input:focus { border-color: var(--primary); }
+    .login-card .login-btn {
+      width: 100%; margin-top: 12px; padding: 12px;
+      background: var(--primary); color: var(--white);
+      border: none; border-radius: var(--radius);
+      font-size: 14px; font-weight: 600; cursor: pointer;
+      font-family: inherit; transition: background .2s;
+    }
+    .login-card .login-btn:hover { background: var(--primary-dark); }
+    .login-error { color: var(--red); font-size: 13px; margin-top: 10px; display: none; }
+
+    /* ========== LAYOUT ========== */
+    .app { display: none; }
+    .app-header {
+      background: var(--white); border-bottom: 1px solid var(--gray-200);
+      padding: 16px 24px; display: flex; align-items: center; justify-content: space-between;
+      position: sticky; top: 0; z-index: 50;
+    }
+    .app-header h1 { font-size: 18px; font-weight: 700; }
+    .app-header .header-right { display: flex; align-items: center; gap: 12px; }
+
+    .tabs {
+      display: flex; background: var(--white); border-bottom: 1px solid var(--gray-200);
+      padding: 0 24px; gap: 0; overflow-x: auto;
+    }
+    .tab-btn {
+      padding: 14px 20px; font-size: 13px; font-weight: 600;
+      color: var(--gray-400); background: none; border: none;
+      border-bottom: 2px solid transparent; cursor: pointer;
+      font-family: inherit; white-space: nowrap; transition: all .2s;
+    }
+    .tab-btn:hover { color: var(--gray-600); }
+    .tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); }
+
+    .tab-content { display: none; padding: 24px; max-width: 1100px; margin: 0 auto; }
+    .tab-content.active { display: block; }
+
+    /* ========== COMPOSANTS ========== */
+    .card {
+      background: var(--white); border-radius: var(--radius);
+      border: 1px solid var(--gray-200); margin-bottom: 20px; overflow: hidden;
+    }
+    .card-header {
+      padding: 16px 20px; border-bottom: 1px solid var(--gray-100);
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .card-header h2 { font-size: 15px; font-weight: 700; }
+    .card-body { padding: 20px; }
+
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th {
+      text-align: left; padding: 10px 12px; font-weight: 600;
+      color: var(--gray-500); background: var(--gray-50);
+      border-bottom: 1px solid var(--gray-200); font-size: 11px;
+      text-transform: uppercase; letter-spacing: .5px;
+    }
+    td {
+      padding: 10px 12px; border-bottom: 1px solid var(--gray-100);
+      vertical-align: middle;
+    }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: var(--gray-50); }
+
+    .btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 8px 16px; border-radius: 8px; font-size: 13px;
+      font-weight: 600; border: none; cursor: pointer;
+      font-family: inherit; transition: all .15s; white-space: nowrap;
+    }
+    .btn-primary { background: var(--primary); color: var(--white); }
+    .btn-primary:hover { background: var(--primary-dark); }
+    .btn-secondary { background: var(--gray-100); color: var(--gray-700); }
+    .btn-secondary:hover { background: var(--gray-200); }
+    .btn-danger { background: var(--red-light); color: var(--red); }
+    .btn-danger:hover { background: #fde8e8; }
+    .btn-green { background: var(--green-light); color: var(--green); }
+    .btn-green:hover { background: #d4ede6; }
+    .btn-sm { padding: 5px 10px; font-size: 12px; }
+    .btn-xs { padding: 3px 8px; font-size: 11px; border-radius: 6px; }
+
+    .input {
+      padding: 8px 12px; border: 1px solid var(--gray-200);
+      border-radius: 8px; font-size: 13px; font-family: inherit;
+      outline: none; width: 100%; transition: border .2s;
+    }
+    .input:focus { border-color: var(--primary); }
+    .input-sm { padding: 5px 8px; font-size: 12px; }
+
+    .badge {
+      display: inline-block; padding: 2px 8px; border-radius: 10px;
+      font-size: 11px; font-weight: 600;
+    }
+    .badge-green { background: var(--green-light); color: var(--green); }
+    .badge-orange { background: var(--primary-light); color: var(--primary); }
+    .badge-gray { background: var(--gray-100); color: var(--gray-400); }
+
+    .form-row {
+      display: flex; gap: 10px; align-items: flex-end;
+      margin-bottom: 12px; flex-wrap: wrap;
+    }
+    .form-group { display: flex; flex-direction: column; gap: 4px; }
+    .form-group label { font-size: 11px; font-weight: 600; color: var(--gray-500); text-transform: uppercase; }
+    .form-group.flex-1 { flex: 1; min-width: 120px; }
+
+    .toast {
+      position: fixed; bottom: 24px; right: 24px;
+      padding: 12px 20px; border-radius: var(--radius);
+      font-size: 13px; font-weight: 600; color: var(--white);
+      z-index: 1000; opacity: 0; transform: translateY(10px);
+      transition: all .3s; pointer-events: none;
+    }
+    .toast.show { opacity: 1; transform: translateY(0); }
+    .toast-success { background: var(--green); }
+    .toast-error { background: var(--red); }
+
+    .empty-state {
+      text-align: center; padding: 40px 20px; color: var(--gray-400);
+    }
+    .empty-state .icon { font-size: 36px; margin-bottom: 8px; }
+    .empty-state p { font-size: 13px; }
+
+    .stats-row {
+      display: flex; gap: 16px; margin-bottom: 20px; flex-wrap: wrap;
+    }
+    .stat-card {
+      flex: 1; min-width: 140px;
+      background: var(--white); border: 1px solid var(--gray-200);
+      border-radius: var(--radius); padding: 16px 20px;
+    }
+    .stat-card .stat-value { font-size: 28px; font-weight: 700; color: var(--gray-900); }
+    .stat-card .stat-label { font-size: 12px; color: var(--gray-400); margin-top: 2px; }
+
+    /* Checkbox style */
+    .attr-cb { width: 16px; height: 16px; cursor: pointer; accent-color: var(--primary); }
+
+    /* Token link display */
+    .token-link {
+      font-family: monospace; font-size: 12px; background: var(--gray-50);
+      padding: 3px 8px; border-radius: 6px; color: var(--primary);
+      cursor: pointer; border: 1px solid var(--gray-200);
+      display: inline-block; max-width: 220px; overflow: hidden;
+      text-overflow: ellipsis; white-space: nowrap;
+    }
+    .token-link:hover { background: var(--primary-light); }
+
+    /* Modal */
+    .modal-overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,.5); z-index: 200;
+      align-items: center; justify-content: center; padding: 24px;
+    }
+    .modal-overlay.show { display: flex; }
+    .modal {
+      background: var(--white); border-radius: 16px;
+      max-width: 500px; width: 100%; max-height: 80vh;
+      overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,.3);
+    }
+    .modal-header {
+      padding: 20px 24px; border-bottom: 1px solid var(--gray-100);
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .modal-header h3 { font-size: 16px; font-weight: 700; }
+    .modal-close {
+      background: none; border: none; font-size: 20px;
+      cursor: pointer; color: var(--gray-400); padding: 4px;
+    }
+    .modal-body { padding: 24px; }
+    .modal-footer {
+      padding: 16px 24px; border-top: 1px solid var(--gray-100);
+      display: flex; justify-content: flex-end; gap: 10px;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .tabs { padding: 0 12px; }
+      .tab-content { padding: 16px; }
+      .form-row { flex-direction: column; }
+      .form-group.flex-1 { min-width: 100%; }
+      .stats-row { flex-direction: column; }
+      table { font-size: 12px; }
+      td, th { padding: 8px; }
+    }
+
+    /* Loading state for Firebase */
+    .firebase-loading {
+      display: flex; align-items: center; justify-content: center;
+      padding: 60px; color: var(--gray-400); font-size: 14px;
+    }
+    .firebase-error {
+      background: var(--red-light); color: var(--red);
+      padding: 16px 20px; border-radius: var(--radius);
+      margin: 24px; font-size: 13px; text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ========== LOGIN ========== -->
+  <div class="login-page" id="login-page">
+    <div class="login-card">
+      <h1>CD2026 Admin</h1>
+      <p class="login-sub">Célébration du Dharma 2026 — Gestion</p>
+      <input type="password" id="login-password" placeholder="Mot de passe admin" onkeydown="if(event.key==='Enter')login()">
+      <button class="login-btn" onclick="login()">Se connecter</button>
+      <p class="login-error" id="login-error">Mot de passe incorrect</p>
+    </div>
+  </div>
+
+  <!-- ========== APP ========== -->
+  <div class="app" id="app">
+    <div class="app-header">
+      <h1>CD2026 — Administration</h1>
+      <div class="header-right">
+        <span id="sync-status" style="font-size:12px;color:var(--gray-400)"></span>
+        <button class="btn btn-secondary btn-sm" onclick="logout()">Déconnexion</button>
+      </div>
+    </div>
+
+    <div class="tabs">
+      <button class="tab-btn active" onclick="switchTab('dashboard')">Tableau de bord</button>
+      <button class="tab-btn" onclick="switchTab('seances')">Séances</button>
+      <button class="tab-btn" onclick="switchTab('personnes')">Participants</button>
+      <button class="tab-btn" onclick="switchTab('attributions')">Attributions</button>
+      <button class="tab-btn" onclick="switchTab('envois')">Envois</button>
+    </div>
+
+    <!-- ===== DASHBOARD ===== -->
+    <div class="tab-content active" id="tab-dashboard">
+      <div class="stats-row">
+        <div class="stat-card">
+          <div class="stat-value" id="stat-seances">0</div>
+          <div class="stat-label">Séances</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="stat-personnes">0</div>
+          <div class="stat-label">Participants</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="stat-attributions">0</div>
+          <div class="stat-label">Attributions</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="stat-envois">0</div>
+          <div class="stat-label">Emails envoyés</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><h2>Dernières actions</h2></div>
+        <div class="card-body" id="recent-actions">
+          <div class="empty-state"><div class="icon">📋</div><p>Aucune action récente</p></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== SÉANCES ===== -->
+    <div class="tab-content" id="tab-seances">
+      <div class="card">
+        <div class="card-header">
+          <h2>Ajouter une séance</h2>
+        </div>
+        <div class="card-body">
+          <div class="form-row">
+            <div class="form-group flex-1">
+              <label>Nom</label>
+              <input class="input" id="new-seance-nom" placeholder="Ex: Enseignement — Samedi matin">
+            </div>
+            <div class="form-group" style="width:160px">
+              <label>Date et heure</label>
+              <input class="input" type="datetime-local" id="new-seance-date">
+            </div>
+            <div class="form-group" style="width:80px">
+              <label>Durée (min)</label>
+              <input class="input" type="number" id="new-seance-duree" value="90" min="1">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group flex-1">
+              <label>Lien Direct (Vimeo)</label>
+              <input class="input" id="new-seance-lien-direct" placeholder="https://vimeo.com/...">
+            </div>
+            <div class="form-group flex-1">
+              <label>Lien Replay (Vimeo)</label>
+              <input class="input" id="new-seance-lien-replay" placeholder="https://vimeo.com/...">
+            </div>
+            <div class="form-group">
+              <label>&nbsp;</label>
+              <button class="btn btn-primary" onclick="ajouterSeance()">+ Ajouter</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><h2>Liste des séances</h2></div>
+        <div class="card-body" style="padding:0;overflow-x:auto">
+          <table>
+            <thead>
+              <tr>
+                <th style="width:40px">ID</th>
+                <th>Nom</th>
+                <th style="width:140px">Date</th>
+                <th style="width:60px">Durée</th>
+                <th>Lien Direct</th>
+                <th>Lien Replay</th>
+                <th style="width:100px">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="seances-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== PERSONNES ===== -->
+    <div class="tab-content" id="tab-personnes">
+      <div class="card">
+        <div class="card-header"><h2>Ajouter un participant</h2></div>
+        <div class="card-body">
+          <div class="form-row">
+            <div class="form-group flex-1">
+              <label>Prénom</label>
+              <input class="input" id="new-personne-prenom" placeholder="Marie">
+            </div>
+            <div class="form-group flex-1">
+              <label>Nom</label>
+              <input class="input" id="new-personne-nom" placeholder="Dupont">
+            </div>
+            <div class="form-group flex-1">
+              <label>Email</label>
+              <input class="input" type="email" id="new-personne-email" placeholder="marie@example.com">
+            </div>
+            <div class="form-group">
+              <label>&nbsp;</label>
+              <button class="btn btn-primary" onclick="ajouterPersonne()">+ Ajouter</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <h2>Liste des participants</h2>
+          <button class="btn btn-green btn-sm" onclick="exporterParticipants()">Exporter CSV</button>
+        </div>
+        <div class="card-body" style="padding:0;overflow-x:auto">
+          <table>
+            <thead>
+              <tr>
+                <th style="width:40px">ID</th>
+                <th>Prénom</th>
+                <th>Nom</th>
+                <th>Email</th>
+                <th style="width:90px">Token</th>
+                <th style="width:100px">Lien perso</th>
+                <th style="width:60px">Séances</th>
+                <th style="width:140px">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="personnes-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== ATTRIBUTIONS ===== -->
+    <div class="tab-content" id="tab-attributions">
+      <div class="card">
+        <div class="card-header">
+          <h2>Matrice des attributions</h2>
+          <div style="display:flex;gap:8px">
+            <button class="btn btn-green btn-sm" onclick="attribuerToutATous()">Tout cocher</button>
+            <button class="btn btn-secondary btn-sm" onclick="decocherTout()">Tout décocher</button>
+          </div>
+        </div>
+        <div class="card-body" style="padding:0;overflow-x:auto">
+          <table id="attributions-table">
+            <thead id="attr-thead"></thead>
+            <tbody id="attr-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== ENVOIS ===== -->
+    <div class="tab-content" id="tab-envois">
+      <div class="card">
+        <div class="card-header">
+          <h2>Envoyer les liens d'accès</h2>
+        </div>
+        <div class="card-body">
+          <p style="font-size:13px;color:var(--gray-500);margin-bottom:16px">
+            Chaque participant recevra un email avec son lien personnel d'accès aux séances qui lui sont attribuées.
+          </p>
+          <div style="display:flex;gap:10px;flex-wrap:wrap">
+            <button class="btn btn-primary" onclick="ouvrirModalEnvoi('tous')">Envoyer à tous</button>
+            <button class="btn btn-secondary" onclick="ouvrirModalEnvoi('non-envoyes')">Envoyer aux non-envoyés</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><h2>Historique des envois</h2></div>
+        <div class="card-body" style="padding:0;overflow-x:auto">
+          <table>
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Participant</th>
+                <th>Type</th>
+                <th>Détails</th>
+              </tr>
+            </thead>
+            <tbody id="envois-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== MODAL ENVOI ========== -->
+  <div class="modal-overlay" id="modal-envoi">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>Confirmer l'envoi</h3>
+        <button class="modal-close" onclick="fermerModal()">&times;</button>
+      </div>
+      <div class="modal-body" id="modal-envoi-body">
+        <p>Envoyer les liens d'accès à <strong id="modal-envoi-count">0</strong> participant(s) ?</p>
+        <p style="font-size:13px;color:var(--gray-500);margin-top:8px">
+          Chaque personne recevra un email avec son lien personnel.
+        </p>
+        <div id="modal-envoi-list" style="margin-top:12px;max-height:200px;overflow-y:auto;font-size:13px"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="fermerModal()">Annuler</button>
+        <button class="btn btn-primary" id="btn-confirmer-envoi" onclick="confirmerEnvoi()">Envoyer</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== TOAST ========== -->
+  <div class="toast" id="toast"></div>
+
+  <!-- ========== FIREBASE SDK ========== -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+  <script src="firebase-config.js"></script>
+
+  <script>
+    // ============================================================
+    // Initialisation Firebase
+    // ============================================================
+    firebase.initializeApp(FIREBASE_CONFIG);
+    var db = firebase.firestore();
+
+    // ============================================================
+    // État local
+    // ============================================================
+    var STATE = {
+      seances: [],
+      personnes: [],
+      attributions: [],
+      envois: [],
+      authenticated: false
+    };
+
+    var pendingEnvoi = [];
+
+    // ============================================================
+    // Auth admin (simple, côté client)
+    // ============================================================
+    function login() {
+      var pw = document.getElementById('login-password').value;
+      if (pw === ADMIN_PASSWORD) {
+        STATE.authenticated = true;
+        document.getElementById('login-page').style.display = 'none';
+        document.getElementById('app').style.display = 'block';
+        sessionStorage.setItem('cd2026_auth', '1');
+        chargerDonnees();
+      } else {
+        document.getElementById('login-error').style.display = 'block';
+      }
+    }
+
+    function logout() {
+      STATE.authenticated = false;
+      sessionStorage.removeItem('cd2026_auth');
+      document.getElementById('app').style.display = 'none';
+      document.getElementById('login-page').style.display = 'flex';
+      document.getElementById('login-password').value = '';
+    }
+
+    // Auto-login si session active
+    if (sessionStorage.getItem('cd2026_auth') === '1') {
+      document.getElementById('login-page').style.display = 'none';
+      document.getElementById('app').style.display = 'block';
+      STATE.authenticated = true;
+      // Charger après que Firebase soit prêt
+      setTimeout(chargerDonnees, 100);
+    }
+
+    // ============================================================
+    // Tabs
+    // ============================================================
+    function switchTab(name) {
+      document.querySelectorAll('.tab-btn').forEach(function(b) { b.classList.remove('active'); });
+      document.querySelectorAll('.tab-content').forEach(function(c) { c.classList.remove('active'); });
+      document.getElementById('tab-' + name).classList.add('active');
+      // Activer le bon bouton
+      var btns = document.querySelectorAll('.tab-btn');
+      var tabs = ['dashboard', 'seances', 'personnes', 'attributions', 'envois'];
+      var idx = tabs.indexOf(name);
+      if (idx >= 0 && btns[idx]) btns[idx].classList.add('active');
+    }
+
+    // ============================================================
+    // Chargement des données depuis Firestore
+    // ============================================================
+    function chargerDonnees() {
+      setSyncStatus('Chargement...');
+      Promise.all([
+        db.collection('seances').orderBy('date').get(),
+        db.collection('personnes').orderBy('nom').get(),
+        db.collection('attributions').get(),
+        db.collection('envois').orderBy('horodatage', 'desc').limit(100).get()
+      ]).then(function(results) {
+        STATE.seances = results[0].docs.map(function(d) { return Object.assign({ id: d.id }, d.data()); });
+        STATE.personnes = results[1].docs.map(function(d) { return Object.assign({ id: d.id }, d.data()); });
+        STATE.attributions = results[2].docs.map(function(d) { return Object.assign({ id: d.id }, d.data()); });
+        STATE.envois = results[3].docs.map(function(d) { return Object.assign({ id: d.id }, d.data()); });
+
+        renderAll();
+        setSyncStatus('Synchronisé');
+      }).catch(function(err) {
+        console.error('Erreur chargement:', err);
+        setSyncStatus('Erreur de connexion');
+        toast('Erreur de connexion à Firebase. Vérifiez la configuration.', 'error');
+      });
+    }
+
+    function setSyncStatus(text) {
+      document.getElementById('sync-status').textContent = text;
+    }
+
+    // ============================================================
+    // Rendu global
+    // ============================================================
+    function renderAll() {
+      renderDashboard();
+      renderSeances();
+      renderPersonnes();
+      renderAttributions();
+      renderEnvois();
+    }
+
+    // ============================================================
+    // Dashboard
+    // ============================================================
+    function renderDashboard() {
+      document.getElementById('stat-seances').textContent = STATE.seances.length;
+      document.getElementById('stat-personnes').textContent = STATE.personnes.length;
+      document.getElementById('stat-attributions').textContent = STATE.attributions.length;
+      document.getElementById('stat-envois').textContent = STATE.envois.length;
+
+      var container = document.getElementById('recent-actions');
+      if (STATE.envois.length === 0) {
+        container.innerHTML = '<div class="empty-state"><div class="icon">📋</div><p>Aucune action récente</p></div>';
+        return;
+      }
+      var html = '<table><thead><tr><th>Date</th><th>Détails</th></tr></thead><tbody>';
+      STATE.envois.slice(0, 10).forEach(function(e) {
+        var dateStr = e.horodatage && e.horodatage.toDate ? formatDateFr(e.horodatage.toDate()) : String(e.horodatage || '');
+        html += '<tr><td>' + esc(dateStr) + '</td><td>' + esc(e.type + ' — ' + (e.details || '')) + '</td></tr>';
+      });
+      html += '</tbody></table>';
+      container.innerHTML = html;
+    }
+
+    // ============================================================
+    // Séances
+    // ============================================================
+    function renderSeances() {
+      var tbody = document.getElementById('seances-tbody');
+      if (STATE.seances.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7"><div class="empty-state"><div class="icon">🎬</div><p>Aucune séance</p></div></td></tr>';
+        return;
+      }
+      var html = '';
+      STATE.seances.forEach(function(s) {
+        var dateStr = formatDateFromFirestore(s.date);
+        html += '<tr>';
+        html += '<td>' + esc(s.numId || s.id.substr(0,4)) + '</td>';
+        html += '<td><strong>' + esc(s.nom) + '</strong></td>';
+        html += '<td>' + esc(dateStr) + '</td>';
+        html += '<td>' + (s.duree || 90) + ' min</td>';
+        html += '<td>';
+        if (s.lienDirect) {
+          html += '<input class="input input-sm" value="' + esc(s.lienDirect) + '" onchange="updateSeanceLien(\'' + s.id + '\',\'lienDirect\',this.value)" style="width:180px">';
+        } else {
+          html += '<input class="input input-sm" placeholder="Ajouter..." onchange="updateSeanceLien(\'' + s.id + '\',\'lienDirect\',this.value)" style="width:180px">';
+        }
+        html += '</td>';
+        html += '<td>';
+        if (s.lienReplay) {
+          html += '<input class="input input-sm" value="' + esc(s.lienReplay) + '" onchange="updateSeanceLien(\'' + s.id + '\',\'lienReplay\',this.value)" style="width:180px">';
+        } else {
+          html += '<input class="input input-sm" placeholder="Ajouter..." onchange="updateSeanceLien(\'' + s.id + '\',\'lienReplay\',this.value)" style="width:180px">';
+        }
+        html += '</td>';
+        html += '<td><button class="btn btn-danger btn-xs" onclick="supprimerSeance(\'' + s.id + '\')">Supprimer</button></td>';
+        html += '</tr>';
+      });
+      tbody.innerHTML = html;
+    }
+
+    function ajouterSeance() {
+      var nom = document.getElementById('new-seance-nom').value.trim();
+      var dateInput = document.getElementById('new-seance-date').value;
+      var duree = parseInt(document.getElementById('new-seance-duree').value) || 90;
+      var lienDirect = document.getElementById('new-seance-lien-direct').value.trim();
+      var lienReplay = document.getElementById('new-seance-lien-replay').value.trim();
+
+      if (!nom) { toast('Veuillez saisir un nom de séance', 'error'); return; }
+      if (!dateInput) { toast('Veuillez saisir une date', 'error'); return; }
+
+      var date = new Date(dateInput);
+      var numId = STATE.seances.length > 0 ?
+        Math.max.apply(null, STATE.seances.map(function(s) { return parseInt(s.numId) || 0; })) + 1 : 1;
+
+      db.collection('seances').add({
+        nom: nom,
+        date: firebase.firestore.Timestamp.fromDate(date),
+        duree: duree,
+        lienDirect: lienDirect,
+        lienReplay: lienReplay,
+        numId: numId
+      }).then(function() {
+        toast('Séance ajoutée');
+        document.getElementById('new-seance-nom').value = '';
+        document.getElementById('new-seance-date').value = '';
+        document.getElementById('new-seance-duree').value = '90';
+        document.getElementById('new-seance-lien-direct').value = '';
+        document.getElementById('new-seance-lien-replay').value = '';
+        chargerDonnees();
+      }).catch(function(err) {
+        toast('Erreur : ' + err.message, 'error');
+      });
+    }
+
+    function updateSeanceLien(seanceId, field, value) {
+      var update = {};
+      update[field] = value;
+      db.collection('seances').doc(seanceId).update(update).then(function() {
+        toast('Lien mis à jour');
+        chargerDonnees();
+      }).catch(function(err) {
+        toast('Erreur : ' + err.message, 'error');
+      });
+    }
+
+    function supprimerSeance(seanceId) {
+      if (!confirm('Supprimer cette séance et ses attributions ?')) return;
+
+      // Supprimer les attributions liées
+      var batch = db.batch();
+      STATE.attributions
+        .filter(function(a) { return a.seanceId === seanceId; })
+        .forEach(function(a) { batch.delete(db.collection('attributions').doc(a.id)); });
+      batch.delete(db.collection('seances').doc(seanceId));
+
+      batch.commit().then(function() {
+        toast('Séance supprimée');
+        chargerDonnees();
+      }).catch(function(err) {
+        toast('Erreur : ' + err.message, 'error');
+      });
+    }
+
+    // ============================================================
+    // Personnes
+    // ============================================================
+    function renderPersonnes() {
+      var tbody = document.getElementById('personnes-tbody');
+      if (STATE.personnes.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="8"><div class="empty-state"><div class="icon">👤</div><p>Aucun participant</p></div></td></tr>';
+        return;
+      }
+      var html = '';
+      STATE.personnes.forEach(function(p) {
+        var attrCount = STATE.attributions.filter(function(a) { return a.personneId === p.id; }).length;
+        var baseUrl = SITE_BASE_URL || (window.location.origin + window.location.pathname.replace(/admin\.html.*/, ''));
+        var lienPerso = baseUrl + 'index.html?t=' + (p.token || '');
+
+        html += '<tr>';
+        html += '<td>' + esc(p.numId || p.id.substr(0,4)) + '</td>';
+        html += '<td>' + esc(p.prenom) + '</td>';
+        html += '<td>' + esc(p.nom) + '</td>';
+        html += '<td>' + esc(p.email) + '</td>';
+        html += '<td><code style="font-size:11px;color:var(--primary)">' + esc(p.token || '') + '</code></td>';
+        html += '<td><span class="token-link" onclick="copierLien(this,\'' + esc(lienPerso) + '\')" title="Cliquer pour copier">' + esc(lienPerso) + '</span></td>';
+        html += '<td><span class="badge ' + (attrCount > 0 ? 'badge-green' : 'badge-gray') + '">' + attrCount + '</span></td>';
+        html += '<td>';
+        html += '<button class="btn btn-secondary btn-xs" onclick="regenererToken(\'' + p.id + '\')" title="Nouveau token">🔄</button> ';
+        html += '<button class="btn btn-danger btn-xs" onclick="supprimerPersonne(\'' + p.id + '\')">✕</button>';
+        html += '</td>';
+        html += '</tr>';
+      });
+      tbody.innerHTML = html;
+    }
+
+    function genererToken() {
+      var chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+      var token = '';
+      for (var i = 0; i < 8; i++) {
+        token += chars.charAt(Math.floor(Math.random() * chars.length));
+      }
+      return token;
+    }
+
+    function ajouterPersonne() {
+      var prenom = document.getElementById('new-personne-prenom').value.trim();
+      var nom = document.getElementById('new-personne-nom').value.trim();
+      var email = document.getElementById('new-personne-email').value.trim();
+
+      if (!prenom || !nom) { toast('Prénom et nom obligatoires', 'error'); return; }
+
+      var token = genererToken();
+      var numId = STATE.personnes.length > 0 ?
+        Math.max.apply(null, STATE.personnes.map(function(p) { return parseInt(p.numId) || 0; })) + 1 : 1;
+
+      db.collection('personnes').add({
+        prenom: prenom,
+        nom: nom,
+        email: email,
+        token: token,
+        numId: numId
+      }).then(function(docRef) {
+        // Créer le document token pour l'accès public
+        return updateTokenDocument(docRef.id, token);
+      }).then(function() {
+        toast('Participant ajouté');
+        document.getElementById('new-personne-prenom').value = '';
+        document.getElementById('new-personne-nom').value = '';
+        document.getElementById('new-personne-email').value = '';
+        chargerDonnees();
+      }).catch(function(err) {
+        toast('Erreur : ' + err.message, 'error');
+      });
+    }
+
+    function regenererToken(personneId) {
+      if (!confirm('Générer un nouveau token ? L\'ancien lien ne fonctionnera plus.')) return;
+      var newToken = genererToken();
+      var personne = STATE.personnes.find(function(p) { return p.id === personneId; });
+      var oldToken = personne ? personne.token : '';
+
+      var batch = db.batch();
+      batch.update(db.collection('personnes').doc(personneId), { token: newToken });
+      // Supprimer l'ancien token
+      if (oldToken) batch.delete(db.collection('tokens').doc(oldToken));
+
+      batch.commit().then(function() {
+        return updateTokenDocument(personneId, newToken);
+      }).then(function() {
+        toast('Token régénéré');
+        chargerDonnees();
+      }).catch(function(err) {
+        toast('Erreur : ' + err.message, 'error');
+      });
+    }
+
+    function supprimerPersonne(personneId) {
+      var personne = STATE.personnes.find(function(p) { return p.id === personneId; });
+      if (!confirm('Supprimer ' + (personne ? personne.prenom + ' ' + personne.nom : 'ce participant') + ' ?')) return;
+
+      var batch = db.batch();
+      batch.delete(db.collection('personnes').doc(personneId));
+
+      // Supprimer le token
+      if (personne && personne.token) {
+        batch.delete(db.collection('tokens').doc(personne.token));
+      }
+
+      // Supprimer ses attributions
+      STATE.attributions
+        .filter(function(a) { return a.personneId === personneId; })
+        .forEach(function(a) { batch.delete(db.collection('attributions').doc(a.id)); });
+
+      batch.commit().then(function() {
+        toast('Participant supprimé');
+        chargerDonnees();
+      }).catch(function(err) {
+        toast('Erreur : ' + err.message, 'error');
+      });
+    }
+
+    function copierLien(el, lien) {
+      navigator.clipboard.writeText(lien).then(function() {
+        toast('Lien copié !');
+      }).catch(function() {
+        // Fallback
+        var ta = document.createElement('textarea');
+        ta.value = lien; document.body.appendChild(ta);
+        ta.select(); document.execCommand('copy');
+        document.body.removeChild(ta);
+        toast('Lien copié !');
+      });
+    }
+
+    function exporterParticipants() {
+      var baseUrl = SITE_BASE_URL || (window.location.origin + window.location.pathname.replace(/admin\.html.*/, ''));
+      var csv = 'Prénom,Nom,Email,Token,Lien\n';
+      STATE.personnes.forEach(function(p) {
+        csv += '"' + p.prenom + '","' + p.nom + '","' + p.email + '","' + p.token + '","' + baseUrl + 'index.html?t=' + p.token + '"\n';
+      });
+      var blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8' });
+      var a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'participants-cd2026.csv';
+      a.click();
+      toast('Export CSV téléchargé');
+    }
+
+    // ============================================================
+    // Tokens (documents publics pour l'accès participant)
+    // ============================================================
+    function updateTokenDocument(personneId, token) {
+      var personne = STATE.personnes.find(function(p) { return p.id === personneId; });
+      if (!personne && !token) return Promise.resolve();
+
+      // On reconstruit les données d'accès pour ce token
+      return rebuildTokenDoc(personneId, token);
+    }
+
+    function rebuildTokenDoc(personneId, token) {
+      if (!token) {
+        var p = STATE.personnes.find(function(pp) { return pp.id === personneId; });
+        token = p ? p.token : null;
+        if (!token) return Promise.resolve();
+      }
+
+      var personne = STATE.personnes.find(function(pp) { return pp.id === personneId; });
+      var mesAttributions = STATE.attributions.filter(function(a) { return a.personneId === personneId; });
+      var mesSeanceIds = mesAttributions.map(function(a) { return a.seanceId; });
+      var mesSeances = STATE.seances.filter(function(s) { return mesSeanceIds.indexOf(s.id) !== -1; });
+
+      var tokenData = {
+        prenom: personne ? personne.prenom : '',
+        nom: personne ? personne.nom : '',
+        personneId: personneId,
+        seances: mesSeances.map(function(s) {
+          return {
+            nom: s.nom,
+            date: s.date,
+            duree: s.duree || 90,
+            lienDirect: s.lienDirect || '',
+            lienReplay: s.lienReplay || ''
+          };
+        }),
+        totalAttributions: mesSeances.length,
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+      };
+
+      return db.collection('tokens').doc(token).set(tokenData);
+    }
+
+    function rebuildAllTokens() {
+      setSyncStatus('Mise à jour des tokens...');
+      var promises = STATE.personnes.map(function(p) {
+        return rebuildTokenDoc(p.id, p.token);
+      });
+      return Promise.all(promises).then(function() {
+        setSyncStatus('Synchronisé');
+        toast('Tous les tokens mis à jour');
+      });
+    }
+
+    // ============================================================
+    // Attributions
+    // ============================================================
+    function renderAttributions() {
+      var thead = document.getElementById('attr-thead');
+      var tbody = document.getElementById('attr-tbody');
+
+      if (STATE.personnes.length === 0 || STATE.seances.length === 0) {
+        thead.innerHTML = '';
+        tbody.innerHTML = '<tr><td><div class="empty-state"><div class="icon">📋</div><p>Ajoutez des séances et des participants d\'abord</p></div></td></tr>';
+        return;
+      }
+
+      // En-tête : noms des séances
+      var thHtml = '<tr><th>Participant</th>';
+      STATE.seances.forEach(function(s) {
+        var shortName = s.nom.length > 20 ? s.nom.substr(0, 20) + '…' : s.nom;
+        thHtml += '<th style="text-align:center;min-width:40px" title="' + esc(s.nom) + '">' + esc(shortName) + '</th>';
+      });
+      thHtml += '</tr>';
+      thead.innerHTML = thHtml;
+
+      // Corps : une ligne par personne
+      var html = '';
+      STATE.personnes.forEach(function(p) {
+        html += '<tr>';
+        html += '<td><strong>' + esc(p.prenom + ' ' + p.nom) + '</strong></td>';
+        STATE.seances.forEach(function(s) {
+          var hasAttr = STATE.attributions.some(function(a) {
+            return a.personneId === p.id && a.seanceId === s.id;
+          });
+          html += '<td style="text-align:center">';
+          html += '<input type="checkbox" class="attr-cb" ' + (hasAttr ? 'checked' : '') +
+            ' onchange="toggleAttribution(\'' + p.id + '\',\'' + s.id + '\',this.checked)">';
+          html += '</td>';
+        });
+        html += '</tr>';
+      });
+      tbody.innerHTML = html;
+    }
+
+    function toggleAttribution(personneId, seanceId, attribuer) {
+      if (attribuer) {
+        db.collection('attributions').add({
+          personneId: personneId,
+          seanceId: seanceId,
+          dateAttribution: firebase.firestore.FieldValue.serverTimestamp()
+        }).then(function() {
+          chargerDonnees();
+        });
+      } else {
+        // Trouver et supprimer l'attribution
+        var attr = STATE.attributions.find(function(a) {
+          return a.personneId === personneId && a.seanceId === seanceId;
+        });
+        if (attr) {
+          db.collection('attributions').doc(attr.id).delete().then(function() {
+            chargerDonnees();
+          });
+        }
+      }
+    }
+
+    function attribuerToutATous() {
+      if (!confirm('Attribuer toutes les séances à tous les participants ?')) return;
+      var batch = db.batch();
+      var count = 0;
+
+      STATE.personnes.forEach(function(p) {
+        STATE.seances.forEach(function(s) {
+          var exists = STATE.attributions.some(function(a) {
+            return a.personneId === p.id && a.seanceId === s.id;
+          });
+          if (!exists) {
+            var ref = db.collection('attributions').doc();
+            batch.set(ref, {
+              personneId: p.id,
+              seanceId: s.id,
+              dateAttribution: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            count++;
+          }
+        });
+      });
+
+      if (count === 0) { toast('Tout est déjà attribué'); return; }
+
+      batch.commit().then(function() {
+        toast(count + ' attribution(s) ajoutée(s)');
+        chargerDonnees();
+      }).catch(function(err) {
+        toast('Erreur : ' + err.message, 'error');
+      });
+    }
+
+    function decocherTout() {
+      if (!confirm('Retirer TOUTES les attributions ?')) return;
+      var batch = db.batch();
+      STATE.attributions.forEach(function(a) {
+        batch.delete(db.collection('attributions').doc(a.id));
+      });
+      batch.commit().then(function() {
+        toast('Toutes les attributions retirées');
+        chargerDonnees();
+      }).catch(function(err) {
+        toast('Erreur : ' + err.message, 'error');
+      });
+    }
+
+    // ============================================================
+    // Envois
+    // ============================================================
+    function renderEnvois() {
+      var tbody = document.getElementById('envois-tbody');
+      if (STATE.envois.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="4"><div class="empty-state"><div class="icon">📧</div><p>Aucun envoi</p></div></td></tr>';
+        return;
+      }
+      var html = '';
+      STATE.envois.forEach(function(e) {
+        var dateStr = e.horodatage && e.horodatage.toDate ? formatDateFr(e.horodatage.toDate()) : String(e.horodatage || '');
+        var personne = STATE.personnes.find(function(p) { return p.id === e.personneId; });
+        var nomPersonne = personne ? personne.prenom + ' ' + personne.nom : e.personneId;
+        html += '<tr>';
+        html += '<td>' + esc(dateStr) + '</td>';
+        html += '<td>' + esc(nomPersonne) + '</td>';
+        html += '<td><span class="badge ' + (e.type === 'ÉCHEC' ? 'badge-orange' : 'badge-green') + '">' + esc(e.type) + '</span></td>';
+        html += '<td>' + esc(e.details || '') + '</td>';
+        html += '</tr>';
+      });
+      tbody.innerHTML = html;
+    }
+
+    function ouvrirModalEnvoi(mode) {
+      var personnesAEnvoyer = [];
+
+      if (mode === 'tous') {
+        personnesAEnvoyer = STATE.personnes.filter(function(p) { return p.email; });
+      } else {
+        var personnesDejaEnvoyees = {};
+        STATE.envois.forEach(function(e) {
+          if (e.type !== 'ÉCHEC') personnesDejaEnvoyees[e.personneId] = true;
+        });
+        personnesAEnvoyer = STATE.personnes.filter(function(p) {
+          return p.email && !personnesDejaEnvoyees[p.id];
+        });
+      }
+
+      pendingEnvoi = personnesAEnvoyer;
+      document.getElementById('modal-envoi-count').textContent = personnesAEnvoyer.length;
+
+      var listHtml = '';
+      personnesAEnvoyer.forEach(function(p) {
+        listHtml += '<div style="padding:4px 0;border-bottom:1px solid var(--gray-100)">' +
+          esc(p.prenom + ' ' + p.nom) + ' — <span style="color:var(--gray-400)">' + esc(p.email) + '</span></div>';
+      });
+      document.getElementById('modal-envoi-list').innerHTML = listHtml;
+      document.getElementById('modal-envoi').classList.add('show');
+    }
+
+    function fermerModal() {
+      document.getElementById('modal-envoi').classList.remove('show');
+    }
+
+    function confirmerEnvoi() {
+      if (pendingEnvoi.length === 0) { fermerModal(); return; }
+
+      // Note : l'envoi d'email nécessite un service externe (EmailJS, Resend, etc.)
+      // Ici on enregistre l'intention et on génère le lien
+      var baseUrl = SITE_BASE_URL || (window.location.origin + window.location.pathname.replace(/admin\.html.*/, ''));
+
+      document.getElementById('btn-confirmer-envoi').disabled = true;
+      document.getElementById('btn-confirmer-envoi').textContent = 'Envoi en cours...';
+
+      // Reconstruire tous les tokens avant l'envoi
+      rebuildAllTokens().then(function() {
+        var batch = db.batch();
+        pendingEnvoi.forEach(function(p) {
+          var ref = db.collection('envois').doc();
+          batch.set(ref, {
+            horodatage: firebase.firestore.FieldValue.serverTimestamp(),
+            personneId: p.id,
+            type: 'Lien d\'accès',
+            details: 'Lien préparé pour ' + p.email + ' — ' + baseUrl + 'index.html?t=' + p.token
+          });
+        });
+
+        return batch.commit();
+      }).then(function() {
+        toast(pendingEnvoi.length + ' envoi(s) enregistré(s)');
+        fermerModal();
+        document.getElementById('btn-confirmer-envoi').disabled = false;
+        document.getElementById('btn-confirmer-envoi').textContent = 'Envoyer';
+        chargerDonnees();
+
+        // Afficher les liens à envoyer manuellement
+        var baseUrl2 = SITE_BASE_URL || (window.location.origin + window.location.pathname.replace(/admin\.html.*/, ''));
+        var msg = 'Liens générés ! Copiez-les depuis l\'onglet Participants ou exportez le CSV.\n\n';
+        msg += 'Pour envoyer par email, utilisez votre messagerie ou un service comme EmailJS.\n';
+        msg += 'Chaque participant a un lien unique dans la colonne "Lien perso".';
+        alert(msg);
+      }).catch(function(err) {
+        toast('Erreur : ' + err.message, 'error');
+        document.getElementById('btn-confirmer-envoi').disabled = false;
+        document.getElementById('btn-confirmer-envoi').textContent = 'Envoyer';
+      });
+    }
+
+    // ============================================================
+    // Utilitaires
+    // ============================================================
+    function esc(text) {
+      var div = document.createElement('div');
+      div.textContent = text || '';
+      return div.innerHTML;
+    }
+
+    function formatDateFr(date) {
+      if (!date) return '';
+      var d = String(date.getDate()).padStart(2, '0');
+      var m = String(date.getMonth() + 1).padStart(2, '0');
+      var y = date.getFullYear();
+      var h = String(date.getHours()).padStart(2, '0');
+      var min = String(date.getMinutes()).padStart(2, '0');
+      return d + '/' + m + '/' + y + ' ' + h + ':' + min;
+    }
+
+    function formatDateFromFirestore(ts) {
+      if (!ts) return '';
+      var date = ts.toDate ? ts.toDate() : new Date(ts);
+      return formatDateFr(date);
+    }
+
+    function toast(msg, type) {
+      var el = document.getElementById('toast');
+      el.textContent = msg;
+      el.className = 'toast ' + (type === 'error' ? 'toast-error' : 'toast-success') + ' show';
+      setTimeout(function() { el.classList.remove('show'); }, 3000);
+    }
+  </script>
+</body>
+</html>
