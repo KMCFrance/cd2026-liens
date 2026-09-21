@@ -446,9 +446,26 @@
           <h2>Envoyer les liens d'accès</h2>
         </div>
         <div class="card-body">
-          <p style="font-size:13px;color:var(--gray-500);margin-bottom:16px">
+          <p style="font-size:13px;color:var(--gray-500);margin-bottom:12px">
             Chaque participant recevra un email avec son lien personnel d'accès aux séances qui lui sont attribuées.
           </p>
+          <div id="emailjs-status" style="padding:10px 14px;border-radius:8px;font-size:13px;margin-bottom:16px"></div>
+          <script>
+            document.addEventListener('DOMContentLoaded', function() {
+              var statusEl = document.getElementById('emailjs-status');
+              if (typeof EMAILJS_CONFIG !== 'undefined' &&
+                  EMAILJS_CONFIG.publicKey !== 'VOTRE_PUBLIC_KEY' &&
+                  EMAILJS_CONFIG.serviceId !== 'VOTRE_SERVICE_ID') {
+                statusEl.style.background = 'var(--green-light)';
+                statusEl.style.color = 'var(--green)';
+                statusEl.innerHTML = '✓ EmailJS configuré — les emails seront envoyés directement';
+              } else {
+                statusEl.style.background = 'var(--red-light)';
+                statusEl.style.color = 'var(--red)';
+                statusEl.innerHTML = '✗ EmailJS non configuré — modifiez <code>firebase-config.js</code> avec vos identifiants EmailJS';
+              }
+            });
+          </script>
           <div style="display:flex;gap:10px;flex-wrap:wrap">
             <button class="btn btn-primary" onclick="ouvrirModalEnvoi('tous')">Envoyer à tous</button>
             <button class="btn btn-secondary" onclick="ouvrirModalEnvoi('non-envoyes')">Envoyer aux non-envoyés</button>
@@ -488,6 +505,16 @@
           Chaque personne recevra un email avec son lien personnel.
         </p>
         <div id="modal-envoi-list" style="margin-top:12px;max-height:200px;overflow-y:auto;font-size:13px"></div>
+        <div id="envoi-progress" style="display:none;margin-top:16px">
+          <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--gray-500);margin-bottom:4px">
+            <span id="envoi-progress-text">Envoi en cours...</span>
+            <span id="envoi-progress-count">0/0</span>
+          </div>
+          <div style="background:var(--gray-200);border-radius:4px;height:8px;overflow:hidden">
+            <div id="envoi-progress-bar" style="background:var(--primary);height:100%;width:0%;transition:width 0.3s"></div>
+          </div>
+          <div id="envoi-errors" style="margin-top:8px;font-size:12px;color:var(--red);display:none"></div>
+        </div>
       </div>
       <div class="modal-footer">
         <button class="btn btn-secondary" onclick="fermerModal()">Annuler</button>
@@ -503,6 +530,8 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
   <script src="firebase-config.js"></script>
+  <!-- ========== EMAILJS SDK ========== -->
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 
   <script>
     // ============================================================
@@ -510,6 +539,11 @@
     // ============================================================
     firebase.initializeApp(FIREBASE_CONFIG);
     var db = firebase.firestore();
+
+    // Initialiser EmailJS
+    if (typeof EMAILJS_CONFIG !== 'undefined' && EMAILJS_CONFIG.publicKey !== 'VOTRE_PUBLIC_KEY') {
+      emailjs.init(EMAILJS_CONFIG.publicKey);
+    }
 
     // ============================================================
     // État local
@@ -758,6 +792,7 @@
         html += '<td><span class="token-link" onclick="copierLien(this,\'' + esc(lienPerso) + '\')" title="Cliquer pour copier">' + esc(lienPerso) + '</span></td>';
         html += '<td><span class="badge ' + (attrCount > 0 ? 'badge-green' : 'badge-gray') + '">' + attrCount + '</span></td>';
         html += '<td>';
+        html += '<button class="btn btn-secondary btn-xs" onclick="envoyerUnEmail(\'' + p.id + '\')" title="Envoyer email">📧</button> ';
         html += '<button class="btn btn-secondary btn-xs" onclick="regenererToken(\'' + p.id + '\')" title="Nouveau token">🔄</button> ';
         html += '<button class="btn btn-danger btn-xs" onclick="supprimerPersonne(\'' + p.id + '\')">✕</button>';
         html += '</td>';
@@ -1097,47 +1132,186 @@
       document.getElementById('modal-envoi').classList.remove('show');
     }
 
+    function emailjsConfigured() {
+      return typeof EMAILJS_CONFIG !== 'undefined' &&
+        EMAILJS_CONFIG.publicKey !== 'VOTRE_PUBLIC_KEY' &&
+        EMAILJS_CONFIG.serviceId !== 'VOTRE_SERVICE_ID' &&
+        EMAILJS_CONFIG.templateId !== 'VOTRE_TEMPLATE_ID';
+    }
+
     function confirmerEnvoi() {
       if (pendingEnvoi.length === 0) { fermerModal(); return; }
 
-      // Note : l'envoi d'email nécessite un service externe (EmailJS, Resend, etc.)
-      // Ici on enregistre l'intention et on génère le lien
       var baseUrl = SITE_BASE_URL || (window.location.origin + window.location.pathname.replace(/admin\.html.*/, ''));
 
+      // Vérifier si EmailJS est configuré
+      if (!emailjsConfigured()) {
+        toast('EmailJS non configuré ! Voir firebase-config.js', 'error');
+        return;
+      }
+
       document.getElementById('btn-confirmer-envoi').disabled = true;
-      document.getElementById('btn-confirmer-envoi').textContent = 'Envoi en cours...';
+      document.getElementById('btn-confirmer-envoi').textContent = 'Préparation...';
+
+      // Afficher la barre de progression
+      var progressDiv = document.getElementById('envoi-progress');
+      var progressBar = document.getElementById('envoi-progress-bar');
+      var progressText = document.getElementById('envoi-progress-text');
+      var progressCount = document.getElementById('envoi-progress-count');
+      var errorsDiv = document.getElementById('envoi-errors');
+      progressDiv.style.display = 'block';
+      progressBar.style.width = '0%';
+      progressCount.textContent = '0/' + pendingEnvoi.length;
+      errorsDiv.style.display = 'none';
+      errorsDiv.innerHTML = '';
 
       // Reconstruire tous les tokens avant l'envoi
       rebuildAllTokens().then(function() {
-        var batch = db.batch();
-        pendingEnvoi.forEach(function(p) {
-          var ref = db.collection('envois').doc();
-          batch.set(ref, {
-            horodatage: firebase.firestore.FieldValue.serverTimestamp(),
-            personneId: p.id,
-            type: 'Lien d\'accès',
-            details: 'Lien préparé pour ' + p.email + ' — ' + baseUrl + 'index.html?t=' + p.token
-          });
-        });
+        document.getElementById('btn-confirmer-envoi').textContent = 'Envoi en cours...';
+        var total = pendingEnvoi.length;
+        var sent = 0;
+        var errors = [];
 
-        return batch.commit();
-      }).then(function() {
-        toast(pendingEnvoi.length + ' envoi(s) enregistré(s)');
-        fermerModal();
-        document.getElementById('btn-confirmer-envoi').disabled = false;
-        document.getElementById('btn-confirmer-envoi').textContent = 'Envoyer';
-        chargerDonnees();
+        // Construire la liste des séances par personne pour l'email
+        function getSeancesListForPersonne(personneId) {
+          var seanceIds = STATE.attributions
+            .filter(function(a) { return a.personneId === personneId; })
+            .map(function(a) { return a.seanceId; });
+          return STATE.seances
+            .filter(function(s) { return seanceIds.indexOf(s.id) !== -1; })
+            .sort(function(a, b) { return (a.numId || 0) - (b.numId || 0); })
+            .map(function(s) { return s.nom + ' — ' + (s.date || ''); })
+            .join('\n');
+        }
 
-        // Afficher les liens à envoyer manuellement
-        var baseUrl2 = SITE_BASE_URL || (window.location.origin + window.location.pathname.replace(/admin\.html.*/, ''));
-        var msg = 'Liens générés ! Copiez-les depuis l\'onglet Participants ou exportez le CSV.\n\n';
-        msg += 'Pour envoyer par email, utilisez votre messagerie ou un service comme EmailJS.\n';
-        msg += 'Chaque participant a un lien unique dans la colonne "Lien perso".';
-        alert(msg);
+        // Envoyer les emails un par un (éviter le rate-limiting)
+        function envoyerSuivant(index) {
+          if (index >= total) {
+            // Terminé — enregistrer dans Firestore
+            var batch = db.batch();
+            pendingEnvoi.forEach(function(p, i) {
+              var ref = db.collection('envois').doc();
+              var wasError = errors.some(function(e) { return e.email === p.email; });
+              batch.set(ref, {
+                horodatage: firebase.firestore.FieldValue.serverTimestamp(),
+                personneId: p.id,
+                type: wasError ? 'ÉCHEC' : 'Email envoyé',
+                details: wasError
+                  ? 'Échec pour ' + p.email
+                  : 'Email envoyé à ' + p.email
+              });
+            });
+            batch.commit().then(function() {
+              var successCount = total - errors.length;
+              toast(successCount + ' email(s) envoyé(s) avec succès' + (errors.length > 0 ? ', ' + errors.length + ' erreur(s)' : ''));
+              progressText.textContent = 'Terminé !';
+              document.getElementById('btn-confirmer-envoi').disabled = false;
+              document.getElementById('btn-confirmer-envoi').textContent = 'Envoyer';
+              chargerDonnees();
+              if (errors.length === 0) {
+                setTimeout(function() { fermerModal(); progressDiv.style.display = 'none'; }, 1500);
+              }
+            });
+            return;
+          }
+
+          var p = pendingEnvoi[index];
+          var lienAcces = baseUrl + 'index.html?t=' + p.token;
+          var seancesListe = getSeancesListForPersonne(p.id);
+
+          var templateParams = {
+            to_email: p.email,
+            prenom: p.prenom,
+            nom: p.nom,
+            lien_acces: lienAcces,
+            token: p.token,
+            seances_liste: seancesListe,
+            sender_name: SENDER_NAME || 'Célébration du Dharma 2026',
+            contact_email: CONTACT_EMAIL || 'inscriptions-festival@kadampafrance.org'
+          };
+
+          progressText.textContent = 'Envoi à ' + p.prenom + ' ' + p.nom + '...';
+
+          emailjs.send(EMAILJS_CONFIG.serviceId, EMAILJS_CONFIG.templateId, templateParams)
+            .then(function() {
+              sent++;
+              progressBar.style.width = Math.round((sent / total) * 100) + '%';
+              progressCount.textContent = sent + '/' + total;
+              // Pause de 500ms entre chaque envoi (rate limiting EmailJS)
+              setTimeout(function() { envoyerSuivant(index + 1); }, 500);
+            })
+            .catch(function(err) {
+              sent++;
+              errors.push({ email: p.email, error: err.text || err.message || 'Erreur inconnue' });
+              progressBar.style.width = Math.round((sent / total) * 100) + '%';
+              progressCount.textContent = sent + '/' + total;
+              errorsDiv.style.display = 'block';
+              errorsDiv.innerHTML += '<div>✗ ' + esc(p.email) + ' : ' + esc(errors[errors.length - 1].error) + '</div>';
+              setTimeout(function() { envoyerSuivant(index + 1); }, 500);
+            });
+        }
+
+        envoyerSuivant(0);
       }).catch(function(err) {
-        toast('Erreur : ' + err.message, 'error');
+        toast('Erreur préparation : ' + err.message, 'error');
         document.getElementById('btn-confirmer-envoi').disabled = false;
         document.getElementById('btn-confirmer-envoi').textContent = 'Envoyer';
+        progressDiv.style.display = 'none';
+      });
+    }
+
+    // Envoyer un email à une seule personne
+    function envoyerUnEmail(personneId) {
+      if (!emailjsConfigured()) {
+        toast('EmailJS non configuré ! Voir firebase-config.js', 'error');
+        return;
+      }
+      var p = STATE.personnes.find(function(x) { return x.id === personneId; });
+      if (!p || !p.email) { toast('Pas d\'email pour ce participant', 'error'); return; }
+      if (!p.token) { toast('Pas de token pour ce participant', 'error'); return; }
+
+      if (!confirm('Envoyer l\'email à ' + p.prenom + ' ' + p.nom + ' (' + p.email + ') ?')) return;
+
+      var baseUrl = SITE_BASE_URL || (window.location.origin + window.location.pathname.replace(/admin\.html.*/, ''));
+
+      // Reconstruire le token de cette personne
+      rebuildTokenDoc(p).then(function() {
+        var seanceIds = STATE.attributions
+          .filter(function(a) { return a.personneId === personneId; })
+          .map(function(a) { return a.seanceId; });
+        var seancesListe = STATE.seances
+          .filter(function(s) { return seanceIds.indexOf(s.id) !== -1; })
+          .sort(function(a, b) { return (a.numId || 0) - (b.numId || 0); })
+          .map(function(s) { return s.nom + ' — ' + (s.date || ''); })
+          .join('\n');
+
+        return emailjs.send(EMAILJS_CONFIG.serviceId, EMAILJS_CONFIG.templateId, {
+          to_email: p.email,
+          prenom: p.prenom,
+          nom: p.nom,
+          lien_acces: baseUrl + 'index.html?t=' + p.token,
+          token: p.token,
+          seances_liste: seancesListe,
+          sender_name: SENDER_NAME || 'Célébration du Dharma 2026',
+          contact_email: CONTACT_EMAIL || 'inscriptions-festival@kadampafrance.org'
+        });
+      }).then(function() {
+        toast('Email envoyé à ' + p.prenom + ' ' + p.nom);
+        db.collection('envois').add({
+          horodatage: firebase.firestore.FieldValue.serverTimestamp(),
+          personneId: p.id,
+          type: 'Email envoyé',
+          details: 'Email envoyé à ' + p.email
+        });
+        chargerDonnees();
+      }).catch(function(err) {
+        toast('Erreur : ' + (err.text || err.message), 'error');
+        db.collection('envois').add({
+          horodatage: firebase.firestore.FieldValue.serverTimestamp(),
+          personneId: p.id,
+          type: 'ÉCHEC',
+          details: 'Échec pour ' + p.email + ' : ' + (err.text || err.message)
+        });
       });
     }
 
