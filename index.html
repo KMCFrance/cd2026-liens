@@ -354,6 +354,9 @@
       overflow: hidden;
       background: #000;
       box-shadow: 0 4px 16px rgba(0,0,0,.15);
+      position: relative;
+      -webkit-user-select: none;
+      user-select: none;
     }
     .video-player-wrap .video-responsive {
       position: relative;
@@ -364,6 +367,17 @@
       position: absolute;
       top: 0; left: 0; width: 100%; height: 100%;
       border: none;
+    }
+    /* Overlay pour bloquer l'accès direct à l'iframe (clic droit, etc.) */
+    .video-player-wrap .video-overlay {
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 100%;
+      z-index: 10;
+      cursor: pointer;
+    }
+    .video-player-wrap.playing .video-overlay {
+      /* En lecture, on retire l'overlay pour permettre les contrôles Vimeo */
+      pointer-events: none;
     }
 
     /* No links */
@@ -696,6 +710,54 @@
     }
 
     // ============================================================
+    // Activation dynamique du lecteur vidéo (protection des liens)
+    // ============================================================
+    function activerLecteur(wrapEl) {
+      var encoded = wrapEl.getAttribute('data-v');
+      if (!encoded) return;
+      try {
+        var url = decodeURIComponent(escape(atob(encoded)));
+        var responsive = wrapEl.querySelector('.video-responsive');
+        var iframe = document.createElement('iframe');
+        iframe.setAttribute('src', url);
+        iframe.setAttribute('allow', 'autoplay; fullscreen; picture-in-picture');
+        iframe.setAttribute('allowFullscreen', '');
+        iframe.style.cssText = 'position:absolute;top:0;left:0;width:100%;height:100%;border:none;';
+        // Retirer le bouton play et injecter l'iframe
+        var playBtn = responsive.querySelector('div[style*="pointer-events:none"]');
+        if (playBtn) playBtn.remove();
+        responsive.appendChild(iframe);
+        wrapEl.classList.add('playing');
+        // Supprimer le data-attribute pour ne pas laisser l'URL encodée dans le DOM
+        wrapEl.removeAttribute('data-v');
+      } catch(e) { /* silencieux */ }
+    }
+
+    // ============================================================
+    // Protection contre l'inspection du code source
+    // ============================================================
+    // Bloquer le clic droit sur les zones vidéo
+    document.addEventListener('contextmenu', function(e) {
+      if (e.target.closest && e.target.closest('.video-player-wrap')) {
+        e.preventDefault();
+        return false;
+      }
+    });
+
+    // Désactiver certains raccourcis d'inspection (dissuasif, pas infaillible)
+    document.addEventListener('keydown', function(e) {
+      // F12
+      if (e.key === 'F12') { e.preventDefault(); return false; }
+      // Ctrl+Shift+I (DevTools) / Ctrl+Shift+J (Console) / Ctrl+U (View Source)
+      if (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'i' || e.key === 'J' || e.key === 'j')) {
+        e.preventDefault(); return false;
+      }
+      if (e.ctrlKey && (e.key === 'U' || e.key === 'u')) {
+        e.preventDefault(); return false;
+      }
+    });
+
+    // ============================================================
     // Rendu des séances
     // ============================================================
     function renderSeances() {
@@ -778,10 +840,13 @@
           }
 
           if (showPlayer && embedUrl) {
-            html += '<div class="video-player-wrap">';
+            // Encoder l'URL pour qu'elle ne soit pas visible dans le HTML source
+            var encodedUrl = btoa(unescape(encodeURIComponent(embedUrl)));
+            var playerId = 'vp-' + slugify(s.nom) + '-' + Math.random().toString(36).substr(2, 6);
+            html += '<div class="video-player-wrap" id="' + playerId + '" data-v="' + encodedUrl + '">';
             html += '  <div class="video-responsive">';
-            html += '    <iframe src="' + escapeHtml(embedUrl) + '" ';
-            html += '      allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>';
+            html += '    <div class="video-overlay" onclick="activerLecteur(this.parentNode.parentNode)"></div>';
+            html += '    <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);color:#fff;font-size:48px;pointer-events:none;z-index:5;text-shadow:0 2px 8px rgba(0,0,0,.5)">&#9654;</div>';
             html += '  </div>';
             html += '</div>';
           }
