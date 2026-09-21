@@ -23,9 +23,6 @@ const SENDER_NAME = "Célébration du Dharma 2026";
 // URL de base du site
 const SITE_BASE_URL = "https://kmcfrance.github.io/cd2026-liens/";
 
-// ============================================================
-// Configuration EmailJS — Envoi d'emails depuis la page admin
-// ============================================================
 const EMAILJS_CONFIG = {
   publicKey: "AVNL_-PrO4NqU5RU6",      // Account > API Keys > Public Key
   serviceId: "service_8cjeogb",          // Email Services > votre service
