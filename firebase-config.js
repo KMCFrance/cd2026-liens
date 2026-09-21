@@ -22,4 +22,4 @@ const SENDER_NAME = "Célébration du Dharma 2026";
 
 // URL de base du site (à remplir après activation de GitHub Pages)
 // Exemple : https://votre-pseudo.github.io/cd2026-liens/
-const SITE_BASE_URL = "";
+const SITE_BASE_URL = "https://kmcfrance.github.io/cd2026-liens/";
