@@ -22,4 +22,17 @@ const SENDER_NAME = "Célébration du Dharma 2026";
 
 // URL de base du site (à remplir après activation de GitHub Pages)
 // Exemple : https://votre-pseudo.github.io/cd2026-liens/
-const SITE_BASE_URL = "https://kmcfrance.github.io/cd2026-liens/";
+const SITE_BASE_URL = "";
+
+// ============================================================
+// Configuration EmailJS — Envoi d'emails depuis la page admin
+// ============================================================
+// 1. Créez un compte sur https://www.emailjs.com (gratuit, 200 emails/mois)
+// 2. Ajoutez un "Email Service" (Gmail) → notez le Service ID
+// 3. Créez un "Email Template" avec le modèle fourni → notez le Template ID
+// 4. Copiez votre Public Key depuis Account > API Keys
+const EMAILJS_CONFIG = {
+  publicKey: "AVNL_-PrO4NqU5RU6",      // Account > API Keys > Public Key
+  serviceId: "service_8cjeogb",          // Email Services > votre service
+  templateId: "template_6u839yv"        // Email Templates > votre template
+};
