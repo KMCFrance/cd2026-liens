@@ -11,20 +11,13 @@ const FIREBASE_CONFIG = {
   appId: "1:470606676624:web:b30814e409372320578e15"
 };
 
-// Mot de passe admin (changez-le !)
 const ADMIN_PASSWORD = "cd2026admin";
-
-// Email de contact
 const CONTACT_EMAIL = "inscriptions-festival@kadampafrance.org";
-
-// Nom de l'expéditeur pour les emails
 const SENDER_NAME = "Célébration du Dharma 2026";
-
-// URL de base du site
 const SITE_BASE_URL = "https://kmcfrance.github.io/cd2026-liens/";
 
 const EMAILJS_CONFIG = {
-  publicKey: "AVNL_-PrO4NqU5RU6",      // Account > API Keys > Public Key
-  serviceId: "service_8cjeogb",          // Email Services > votre service
-  templateId: "template_6u839yv"         // Email Templates > votre template
+  publicKey: "AVNL_-PrO4NqU5RU6",
+  serviceId: "service_8cjeogb",
+  templateId: "template_6u839yv"
 };
