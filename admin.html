@@ -535,6 +535,18 @@
 
   <script>
     // ============================================================
+    // Fallback EmailJS — si firebase-config.js ne contient pas EMAILJS_CONFIG
+    // (ex: ancien déploiement GitHub Pages), on le définit ici directement
+    // ============================================================
+    if (typeof EMAILJS_CONFIG === 'undefined') {
+      var EMAILJS_CONFIG = {
+        publicKey: "AVNL_-PrO4NqU5RU6",
+        serviceId: "service_8cjeogb",
+        templateId: "template_6u839yv"
+      };
+    }
+
+    // ============================================================
     // Initialisation Firebase
     // ============================================================
     firebase.initializeApp(FIREBASE_CONFIG);
