@@ -312,6 +312,21 @@
 
     <!-- ===== SÉANCES ===== -->
     <div class="tab-content" id="tab-seances">
+
+      <!-- Pré-remplir -->
+      <div class="card" id="card-preremplir">
+        <div class="card-header" style="display:flex;align-items:center;justify-content:space-between">
+          <h2>Séances de la Célébration du Dharma 2026</h2>
+          <button class="btn btn-primary" onclick="preremplirSeances()" id="btn-preremplir">Pré-remplir les 11 séances</button>
+        </div>
+        <div class="card-body" style="padding:12px 20px;">
+          <p style="font-size:13px;color:var(--gray-500);margin:0;">
+            Insère automatiquement les 11 séances du programme (enseignements, méditations, Tara Verte, Joyau). Il ne vous restera plus qu'à ajouter les liens Vimeo.
+          </p>
+        </div>
+      </div>
+
+      <!-- Ajouter manuellement -->
       <div class="card">
         <div class="card-header">
           <h2>Ajouter une séance</h2>
@@ -360,7 +375,7 @@
                 <th style="width:60px">Durée</th>
                 <th>Lien Direct</th>
                 <th>Lien Replay</th>
-                <th style="width:100px">Actions</th>
+                <th style="width:120px">Actions</th>
               </tr>
             </thead>
             <tbody id="seances-tbody"></tbody>
@@ -685,31 +700,43 @@
     // ============================================================
     function renderSeances() {
       var tbody = document.getElementById('seances-tbody');
+      // Masquer le bouton pré-remplir s'il y a déjà des séances
+      var cardPre = document.getElementById('card-preremplir');
+      if (cardPre) cardPre.style.display = STATE.seances.length > 0 ? 'none' : '';
+
       if (STATE.seances.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="7"><div class="empty-state"><div class="icon">🎬</div><p>Aucune séance</p></div></td></tr>';
+        tbody.innerHTML = '<tr><td colspan="7"><div class="empty-state"><div class="icon">🎬</div><p>Aucune séance — utilisez le bouton « Pré-remplir » ci-dessus</p></div></td></tr>';
         return;
       }
       var html = '';
       STATE.seances.forEach(function(s) {
         var dateStr = formatDateFromFirestore(s.date);
+        // Convertir la date Firestore en format datetime-local pour l'input
+        var dtLocal = '';
+        if (s.date) {
+          var d = s.date.toDate ? s.date.toDate() : new Date(s.date.seconds * 1000);
+          var y = d.getFullYear();
+          var mo = String(d.getMonth()+1).padStart(2,'0');
+          var da = String(d.getDate()).padStart(2,'0');
+          var hh = String(d.getHours()).padStart(2,'0');
+          var mi = String(d.getMinutes()).padStart(2,'0');
+          dtLocal = y+'-'+mo+'-'+da+'T'+hh+':'+mi;
+        }
         html += '<tr>';
         html += '<td>' + esc(s.numId || s.id.substr(0,4)) + '</td>';
-        html += '<td><strong>' + esc(s.nom) + '</strong></td>';
-        html += '<td>' + esc(dateStr) + '</td>';
-        html += '<td>' + (s.duree || 90) + ' min</td>';
+        // Nom modifiable
+        html += '<td><input class="input input-sm" value="' + esc(s.nom) + '" onchange="updateSeanceField(\'' + s.id + '\',\'nom\',this.value)" style="width:200px;font-weight:600"></td>';
+        // Date modifiable
+        html += '<td><input class="input input-sm" type="datetime-local" value="' + dtLocal + '" onchange="updateSeanceDate(\'' + s.id + '\',this.value)" style="width:155px;font-size:11px"></td>';
+        // Durée modifiable
+        html += '<td><input class="input input-sm" type="number" value="' + (s.duree || 90) + '" min="1" onchange="updateSeanceField(\'' + s.id + '\',\'duree\',parseInt(this.value)||90)" style="width:55px;text-align:center"></td>';
+        // Lien direct
         html += '<td>';
-        if (s.lienDirect) {
-          html += '<input class="input input-sm" value="' + esc(s.lienDirect) + '" onchange="updateSeanceLien(\'' + s.id + '\',\'lienDirect\',this.value)" style="width:180px">';
-        } else {
-          html += '<input class="input input-sm" placeholder="Ajouter..." onchange="updateSeanceLien(\'' + s.id + '\',\'lienDirect\',this.value)" style="width:180px">';
-        }
+        html += '<input class="input input-sm" value="' + esc(s.lienDirect || '') + '" placeholder="Ajouter..." onchange="updateSeanceField(\'' + s.id + '\',\'lienDirect\',this.value)" style="width:180px">';
         html += '</td>';
+        // Lien replay
         html += '<td>';
-        if (s.lienReplay) {
-          html += '<input class="input input-sm" value="' + esc(s.lienReplay) + '" onchange="updateSeanceLien(\'' + s.id + '\',\'lienReplay\',this.value)" style="width:180px">';
-        } else {
-          html += '<input class="input input-sm" placeholder="Ajouter..." onchange="updateSeanceLien(\'' + s.id + '\',\'lienReplay\',this.value)" style="width:180px">';
-        }
+        html += '<input class="input input-sm" value="' + esc(s.lienReplay || '') + '" placeholder="Ajouter..." onchange="updateSeanceField(\'' + s.id + '\',\'lienReplay\',this.value)" style="width:180px">';
         html += '</td>';
         html += '<td><button class="btn btn-danger btn-xs" onclick="supprimerSeance(\'' + s.id + '\')">Supprimer</button></td>';
         html += '</tr>';
@@ -751,14 +778,74 @@
       });
     }
 
-    function updateSeanceLien(seanceId, field, value) {
+    function updateSeanceField(seanceId, field, value) {
       var update = {};
       update[field] = value;
       db.collection('seances').doc(seanceId).update(update).then(function() {
-        toast('Lien mis à jour');
+        toast('Séance mise à jour');
         chargerDonnees();
       }).catch(function(err) {
         toast('Erreur : ' + err.message, 'error');
+      });
+    }
+
+    function updateSeanceDate(seanceId, value) {
+      if (!value) return;
+      var d = new Date(value);
+      db.collection('seances').doc(seanceId).update({
+        date: firebase.firestore.Timestamp.fromDate(d)
+      }).then(function() {
+        toast('Date mise à jour');
+        chargerDonnees();
+      }).catch(function(err) {
+        toast('Erreur : ' + err.message, 'error');
+      });
+    }
+
+    // Pré-remplir les 11 séances du programme CD2026
+    function preremplirSeances() {
+      if (STATE.seances.length > 0) {
+        if (!confirm('Il y a déjà ' + STATE.seances.length + ' séance(s). Voulez-vous quand même ajouter les séances du programme ?')) return;
+      }
+
+      var btn = document.getElementById('btn-preremplir');
+      btn.disabled = true;
+      btn.textContent = 'Ajout en cours...';
+
+      var seancesCD2026 = [
+        { numId: 1,  nom: 'Introduction — Vendredi soir',                            date: new Date(2026, 10, 27, 20, 0),  duree: 90  },
+        { numId: 2,  nom: 'Méditation — Samedi matin',                                date: new Date(2026, 10, 28, 9, 0),   duree: 50  },
+        { numId: 3,  nom: 'Transmission des bénédictions de Tara Verte',              date: new Date(2026, 10, 28, 11, 0),  duree: 120 },
+        { numId: 4,  nom: 'Enseignement — Samedi après-midi',                         date: new Date(2026, 10, 28, 16, 30), duree: 90  },
+        { numId: 5,  nom: 'Joyau qui exauce les souhaits — Samedi soir',              date: new Date(2026, 10, 28, 20, 15), duree: 60  },
+        { numId: 6,  nom: 'Méditation — Dimanche matin',                              date: new Date(2026, 10, 29, 9, 0),   duree: 60  },
+        { numId: 7,  nom: 'Enseignement — Dimanche matin',                            date: new Date(2026, 10, 29, 11, 0),  duree: 90  },
+        { numId: 8,  nom: 'Enseignement — Dimanche après-midi',                       date: new Date(2026, 10, 29, 16, 30), duree: 90  },
+        { numId: 9,  nom: 'Joyau qui exauce les souhaits — Dimanche soir',            date: new Date(2026, 10, 29, 20, 15), duree: 60  },
+        { numId: 10, nom: 'Méditation — Lundi matin',                                 date: new Date(2026, 10, 30, 9, 0),   duree: 60  },
+        { numId: 11, nom: 'Enseignement — Lundi matin',                               date: new Date(2026, 10, 30, 11, 0),  duree: 90  }
+      ];
+
+      var batch = db.batch();
+      seancesCD2026.forEach(function(s) {
+        var ref = db.collection('seances').doc();
+        batch.set(ref, {
+          numId: s.numId,
+          nom: s.nom,
+          date: firebase.firestore.Timestamp.fromDate(s.date),
+          duree: s.duree,
+          lienDirect: '',
+          lienReplay: ''
+        });
+      });
+
+      batch.commit().then(function() {
+        toast('11 séances ajoutées avec succès !');
+        chargerDonnees();
+      }).catch(function(err) {
+        toast('Erreur : ' + err.message, 'error');
+        btn.disabled = false;
+        btn.textContent = 'Pré-remplir les 11 séances';
       });
     }
 
