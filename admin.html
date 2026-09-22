@@ -551,9 +551,11 @@
   <script>
     // ============================================================
     // Fallbacks — si firebase-config.js n'a pas chargé ou est incomplet
+    // NB: firebase-config.js utilise "const", donc on ne peut pas
+    // re-déclarer avec var/let/const. On passe par window.
     // ============================================================
     if (typeof FIREBASE_CONFIG === 'undefined') {
-      var FIREBASE_CONFIG = {
+      window.FIREBASE_CONFIG = {
         apiKey: "AIzaSyCPcfGJ421wIcvwcy2_NxSrDeb4SzC2J3A",
         authDomain: "cd2026-liens.firebaseapp.com",
         projectId: "cd2026-liens",
@@ -563,19 +565,19 @@
       };
     }
     if (typeof ADMIN_PASSWORD === 'undefined') {
-      var ADMIN_PASSWORD = "cd2026admin";
+      window.ADMIN_PASSWORD = "cd2026admin";
     }
     if (typeof CONTACT_EMAIL === 'undefined') {
-      var CONTACT_EMAIL = "inscriptions-festival@kadampafrance.org";
+      window.CONTACT_EMAIL = "inscriptions-festival@kadampafrance.org";
     }
     if (typeof SENDER_NAME === 'undefined') {
-      var SENDER_NAME = "Célébration du Dharma 2026";
+      window.SENDER_NAME = "Célébration du Dharma 2026";
     }
     if (typeof SITE_BASE_URL === 'undefined') {
-      var SITE_BASE_URL = "https://kmcfrance.github.io/cd2026-liens/";
+      window.SITE_BASE_URL = "https://kmcfrance.github.io/cd2026-liens/";
     }
     if (typeof EMAILJS_CONFIG === 'undefined') {
-      var EMAILJS_CONFIG = {
+      window.EMAILJS_CONFIG = {
         publicKey: "AVNL_-PrO4NqU5RU6",
         serviceId: "service_8cjeogb",
         templateId: "template_6u839yv"
