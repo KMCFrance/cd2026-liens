@@ -550,9 +550,30 @@
 
   <script>
     // ============================================================
-    // Fallback EmailJS — si firebase-config.js ne contient pas EMAILJS_CONFIG
-    // (ex: ancien déploiement GitHub Pages), on le définit ici directement
+    // Fallbacks — si firebase-config.js n'a pas chargé ou est incomplet
     // ============================================================
+    if (typeof FIREBASE_CONFIG === 'undefined') {
+      var FIREBASE_CONFIG = {
+        apiKey: "AIzaSyCPcfGJ421wIcvwcy2_NxSrDeb4SzC2J3A",
+        authDomain: "cd2026-liens.firebaseapp.com",
+        projectId: "cd2026-liens",
+        storageBucket: "cd2026-liens.firebasestorage.app",
+        messagingSenderId: "470606676624",
+        appId: "1:470606676624:web:b30814e409372320578e15"
+      };
+    }
+    if (typeof ADMIN_PASSWORD === 'undefined') {
+      var ADMIN_PASSWORD = "cd2026admin";
+    }
+    if (typeof CONTACT_EMAIL === 'undefined') {
+      var CONTACT_EMAIL = "inscriptions-festival@kadampafrance.org";
+    }
+    if (typeof SENDER_NAME === 'undefined') {
+      var SENDER_NAME = "Célébration du Dharma 2026";
+    }
+    if (typeof SITE_BASE_URL === 'undefined') {
+      var SITE_BASE_URL = "https://kmcfrance.github.io/cd2026-liens/";
+    }
     if (typeof EMAILJS_CONFIG === 'undefined') {
       var EMAILJS_CONFIG = {
         publicKey: "AVNL_-PrO4NqU5RU6",
